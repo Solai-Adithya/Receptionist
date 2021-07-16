@@ -22,13 +22,18 @@ db = client.get_database("Reception")
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return render_template("home.html")
 
 
 @app.route("/manage", methods=["POST"])
 def getFromDB():
     queryOutput = db.Rooms.find({})
     return dumps(queryOutput)
+
+# @app.route("/")
+# def queue():
+#     return render_template("home.html", course = courses_list)
+
 
 if __name__ == "__main__":
     socketio.run(app)
