@@ -78,20 +78,53 @@
 
       <div class="main">
         <div class="main-queue">
-          <a class="btn btn-info" href="interviewer.html" role="button"
+          <a class="btn btn-info btn-lg" href="interviewer.html" role="button"
             >Create queue</a
           >
-          <a class="btn btn-light" href="main.html" role="button">Join queue</a>
+          <a class="btn btn-light btn-lg" href="main.html" role="button"
+            >Join queue</a
+          >
         </div>
         <br />
         <div class="main-header">Upcoming</div>
         <div class="container">
-          <div class="row row-cols-4 mx-5">
-            <div class="col">Course</div>
-            <div class="col">Giving/Taking</div>
-            <div class="col">Date</div>
-            <div class="col">Time</div>
-          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <!-- <th scope="col">#</th>
+              <th scope="col">First</th>
+              <th scope="col">Last</th>
+              <th scope="col">Handle</th> -->
+
+                <th class="col">Course</th>
+                <th class="col">Giving/Taking</th>
+                <th class="col">Date</th>
+                <th class="col">Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <!-- <th scope="row">1</th> -->
+                <td>CS 309</td>
+                <td>Taking</td>
+                <td>25-07-2021</td>
+                <td>1000</td>
+              </tr>
+              {% for element in table %}
+              <tr>
+                <td>{{element.course}}</td>
+                <td>{{element.Giving/Taking}}</td>
+                <td>{{element.Date}}</td>
+                <td>{{element.Time}}</td>
+              </tr>
+              {% endfor %}
+              <!-- <tr>
+                <th scope="row">3</th>
+                <td colspan="2">Larry the Bird</td>
+                <td>@twitter</td>
+              </tr> -->
+            </tbody>
+          </table>
         </div>
       </div>
 
