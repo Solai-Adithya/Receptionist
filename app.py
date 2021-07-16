@@ -4,7 +4,7 @@ import pymongo
 import requests
 from constants import adhiAtlasAdminPassword
 from bson.json_util import dumps
-
+from bson.objectid import ObjectId
 app = Flask(__name__, template_folder="./Frontend", static_folder="./static/")
 
 app.config["SECRET_KEY"] = "secret!"
@@ -18,6 +18,8 @@ connectionURL = (
 )
 client = pymongo.MongoClient(connectionURL)
 db = client.get_database("Reception")
+Users = db.Users
+Rooms = db.Rooms
 
 
 @app.route("/")
@@ -25,10 +27,21 @@ def home():
     return render_template("index.html")
 
 
-@app.route("/manage", methods=["POST"])
-def getFromDB():
-    queryOutput = db.Rooms.find({})
-    return dumps(queryOutput)
+@app.route('/findRoom/<roomId>/', methods=['GET'])
+def findRoom(roomId):
+    queryObject = {"_id": ObjectId(str(roomId))}
+    query = Rooms.find_one(queryObject)
+    query.pop('_id')
+    return dumps(query)
+
+
+@app.route('/findUser/<userId>/', methods=['GET'])
+def findUser(userId):
+    queryObject = {"_id": ObjectId(str(userId))}
+    query = Users.find_one(queryObject)
+    query.pop('_id')
+    return dumps(query)
+
 
 if __name__ == "__main__":
     socketio.run(app)
