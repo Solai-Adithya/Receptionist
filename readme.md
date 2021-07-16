@@ -4,8 +4,7 @@
 
 This website will notify you when your turn arrives for your interview.
 
-Made by - \
-StarLabs: [Gajraj Singh Chouhan](https://github.com/gajrajgchouhan), [Shubham Prajapati](https://github.com/Nova-007), [Solai Adithya](https://github.com/Solai-Adithya)
+Made by - StarLabs: [Gajraj Singh Chouhan](https://github.com/gajrajgchouhan), [Shubham Prajapati](https://github.com/Nova-007), [Solai Adithya](https://github.com/Solai-Adithya), Siddharth Dhama
 
 ## Description
 
@@ -26,7 +25,7 @@ Enjoy
 ## Tech Stack
 
 - Frontend: HTML, CSS, Javascript
-- Backend: Express.js, Node.js, Socket.IO, MySQL, MongoDB
+- Backend: Flask, Node.js, Socket.IO, MongoDB
 
 ## Contributing
 
@@ -34,8 +33,6 @@ Pull requests are welcome.
 
 Make your changes to a new branch and then, push it to your forked repository. \
 And you are ready to make a pull request.
-
-Please make sure to update tests as appropriate.
 
 ## License
 
