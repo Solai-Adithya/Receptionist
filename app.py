@@ -20,9 +20,13 @@ client = pymongo.MongoClient(connectionURL)
 db = client.get_database("Reception")
 
 
-@app.route("/")
+@app.route("/", methods=["GET"])
 def home():
     return render_template("index.html")
+
+@app.route("/login", methods=["GET"])
+def login():
+    return render_template("login.html")
 
 
 @app.route("/manage", methods=["POST"])

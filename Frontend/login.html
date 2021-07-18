@@ -5,8 +5,9 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="google-signin-scope" content="profile email">
-  <meta name="google-signin-client_id" content="194552875283-laafk8ha5ndevehft0u45s9fmlj48j1d.apps.googleusercontent.com">
+  <!-- <meta name="google-signin-scope" content="profile email"> -->
+  <meta name="google-signin-client_id" content="194552875283-rfaf8feg3jr9uu84r5h6d40e4nvmcvoi.apps.googleusercontent.com">
+  <!-- <meta name="google-signin-client_id" content="481703733586-3qn73useapfdliqbgifbeq0hjnerbid4.apps.googleusercontent.com"> -->
   <script src="https://apis.google.com/js/platform.js" async defer></script>
   <title>Receptionist</title>
   <!--  -->
@@ -39,8 +40,9 @@
         <div class="col-md-12">
           <!-- <a id="gsign" class="btn btn-lg btn-google btn-block text-uppercase btn-outline" href="#">
             <i class="bi bi-google"></i> Signup Using Google</a> -->
-            <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
-        </div>
+            <!-- <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div> -->
+            <div class="g-signin2" data-onsuccess="onSignIn"></div>
+          </div>
       </div>
     </div>
     <footer class="mt-auto">
@@ -55,21 +57,28 @@
 
   <!--  -->
   <script>
-    function onSignIn(googleUser) {
-        // Useful data for your client-side scripts:
-        console.log('yes google oauth - working')
-        var profile = googleUser.getBasicProfile();
-        // document.getElementById("testHere").innerHTML += "<p>"+profile.getName()+"</p>"
-        console.log("ID: " + profile.getId()); // Don't send this directly to your server!
-        console.log('Full Name: ' + profile.getName());
-        console.log('Given Name: ' + profile.getGivenName());
-        console.log('Family Name: ' + profile.getFamilyName());
-        console.log("Image URL: " + profile.getImageUrl());
-        console.log("Email: " + profile.getEmail());
+    // function onSignIn(googleUser) {
+    //     // Useful data for your client-side scripts:
+    //     console.log('yes google oauth - working')
+    //     var profile = googleUser.getBasicProfile();
+    //     // document.getElementById("testHere").innerHTML += "<p>"+profile.getName()+"</p>"
+    //     console.log("ID: " + profile.getId()); // Don't send this directly to your server!
+    //     console.log('Full Name: ' + profile.getName());
+    //     console.log('Given Name: ' + profile.getGivenName());
+    //     console.log('Family Name: ' + profile.getFamilyName());
+    //     console.log("Image URL: " + profile.getImageUrl());
+    //     console.log("Email: " + profile.getEmail());
 
-        // The ID token you need to pass to your backend:
-        var id_token = googleUser.getAuthResponse().id_token;
-        console.log("ID Token: " + id_token);
+    //     // The ID token you need to pass to your backend:
+    //     var id_token = googleUser.getAuthResponse().id_token;
+    //     console.log("ID Token: " + id_token);
+    // }
+    function onSignIn(googleUser) {
+      var profile = googleUser.getBasicProfile();
+      console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+      console.log('Name: ' + profile.getName());
+      console.log('Image URL: ' + profile.getImageUrl());
+      console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
     }
 
     function onSuccess(googleUser) {
