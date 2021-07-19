@@ -4,7 +4,7 @@
 
 This website will notify you when your turn arrives for your interview.
 
-Made by - StarLabs: [Gajraj Singh Chouhan](https://github.com/gajrajgchouhan), [Shubham Prajapati](https://github.com/Nova-007), [Solai Adithya](https://github.com/Solai-Adithya), Siddharth Dhama
+Made by - StarLabs: [Gajraj Singh Chouhan](https://github.com/gajrajgchouhan), [Shubham Prajapati](https://github.com/Nova-007), [Solai Adithya](https://github.com/Solai-Adithya), [Siddharth Dhama](https://github.com/siddhama)
 
 ## Description
 
