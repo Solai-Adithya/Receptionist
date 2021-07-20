@@ -27,12 +27,15 @@
         padding-left: 200px;
       }
       .main {
-        background-color: #a3f1ee;
+        background-color: #33ffa2;
         padding-top: 150px;
         height: 1000px;
+        font-size: 20px;
+        float: left;
       }
       .meet-link {
-        float: middle;
+        float: left;
+        padding-top: 100px;
       }
 
       .footer {
@@ -40,10 +43,11 @@
         color: #fff;
         height: 20px;
         padding: 40px;
-        justify-content: right;
+        /* justify-content: right; */
       }
     </style>
   </head>
+
   <body class="d-flex h-100 text-center">
     <div class="cover-container d-flex w-100 h-100 p-0 mx-auto flex-column">
       <nav class="navbar mb-auto navbar-expand-lg navbar-light bg-light">
@@ -70,38 +74,29 @@
         </div>
       </nav>
       <div class="main">
-        <!-- <div class="announcement" >Announcement</div> -->
-        <!-- <span class="border border-primary">Announcement</span> -->
+        <!-- <div class="mb-3">
+          <label for="formFile" class="form-label"
+            >Enter the list of students</label
+          >
+          <input class="form-control" type="file" id="formFile" />
+        </div> -->
         <div class="container">
-          <div class="row">
-            <div class="col-8">
-              <div class="course-queue"><h4>Course Name</h4></div>
-              <br />
-              <div class="schedule-time">
-                "Your scheduled time for your viva is __:__"
-              </div>
+          <form class="row g-2">
+            <div class="col-auto">
+              <label for="formFile" class="form-label"
+                >Enter the list of students</label
+              >
             </div>
-            <div class="col">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th scope="col">Announcement</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <!-- <th scope="row">1</th> -->
-                    <td>Your meet is scheduled that day</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div class="col-auto">
+              <input class="form-control" type="file" id="formFile" />
             </div>
-          </div>
-          <br /><br />
-          <div class="meet-link">Meet link:</div>
+            <div class="col-auto">
+              <button type="submit" class="btn btn-primary mb-3">Submit</button>
+            </div>
+          </form>
+          <div class="meet-link">The generated meet link is:</div>
         </div>
       </div>
-
       <div class="footer">
         <div class="mt-auto">
           <p>

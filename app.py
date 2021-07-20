@@ -24,7 +24,7 @@ Rooms = db.Rooms
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return render_template("home.html")
 
 
 @app.route('/findRoom/<roomId>/', methods=['GET'])
@@ -41,6 +41,11 @@ def findUser(userId):
     query = Users.find_one(queryObject)
     query.pop('_id')
     return dumps(query)
+
+
+# @app.route("/")
+# def queue():
+#     return render_template("home.html", course = courses_list)
 
 
 if __name__ == "__main__":
