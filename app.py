@@ -1,9 +1,15 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask.templating import render_template_string
 from flask_socketio import SocketIO
 import pymongo
 import requests
-from constants import adhiAtlasAdminPassword
+import json
+from constants import ATLAS_ADMIN_PWD, GOOGLE_CLIENT_ID, GOOGLE_DISCOVERY_URL, GOOGLE_SECRET
 from bson.json_util import dumps
+from bson.objectid import ObjectId
+from flask_login import LoginManager, login_required, login_user, logout_user, current_user
+from oauthlib.oauth2 import WebApplicationClient
+from user import User
 
 app = Flask(__name__, template_folder="./Frontend", static_folder="./static/")
 
@@ -14,25 +20,125 @@ socketio = SocketIO(app)
 
 connectionURL = (
     "mongodb+srv://adhiAtlasAdmin:%s@cluster0.cjyig.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-    % adhiAtlasAdminPassword
+    % ATLAS_ADMIN_PWD
 )
-client = pymongo.MongoClient(connectionURL)
-db = client.get_database("Reception")
+dbclient = pymongo.MongoClient(connectionURL)
+db = dbclient.get_database("Reception")
+Users = db.Users
+Rooms = db.Rooms
+
+# Login
+def get_google_provider_cfg():
+    return requests.get(GOOGLE_DISCOVERY_URL).json()
+
+# Homepage
+@app.route("/")
+def index():
+    if current_user.is_authenticated:
+        return render_template(
+            "index.html",
+            user_name=current_user.name,
+            user_email=current_user.email,
+            user_profile_pic=current_user.profile_pic,
+        )
+    else:
+        return render_template('homePageNotLoggedIn.html')
+
+@app.route('/findRoom/<roomId>/', methods=['GET'])
+def findRoom(roomId):
+    queryObject = {"_id": ObjectId(str(roomId))}
+    query = Rooms.find_one(queryObject)
+    query.pop('_id')
+    return dumps(query)
 
 
-@app.route("/", methods=["GET"])
-def home():
-    return render_template("index.html")
+@app.route('/findUser/<userId>/', methods=['GET'])
+def findUser(userId):
+    queryObject = {"_id": ObjectId(str(userId))}
+    query = Users.find_one(queryObject)
+    query.pop('_id')
+    return dumps(query)
 
-@app.route("/login", methods=["GET"])
+client = WebApplicationClient(GOOGLE_CLIENT_ID)
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+# Flask-Login helper to retrieve a user from our db
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(user_id)
+
+@app.route("/login")
 def login():
-    return render_template("login.html")
+    # Find out what URL to hit for Google login
+    google_provider_cfg = get_google_provider_cfg()
+    authorization_endpoint = google_provider_cfg["authorization_endpoint"]
+
+    # Use library to construct the request for Google login and provide
+    # scopes that let you retrieve user's profile from Google
+    request_uri = client.prepare_request_uri(
+        authorization_endpoint,
+        redirect_uri=request.base_url + "/callback",
+        scope=["openid", "email", "profile"],
+    )
+
+    return redirect(request_uri)
 
 
-@app.route("/manage", methods=["POST"])
-def getFromDB():
-    queryOutput = db.Rooms.find({})
-    return dumps(queryOutput)
+# Login Callback
+@app.route("/login/callback")
+def callback():
+    code = request.args.get("code")
+    result = "<p>code: " + code + "</p>"
+    google_provider_cfg = get_google_provider_cfg()
+    token_endpoint = google_provider_cfg["token_endpoint"]
+    token_url, headers, body = client.prepare_token_request(
+        token_endpoint,
+        authorization_response=request.url,
+        redirect_url=request.base_url,
+        code=code,
+    )
+    token_response = requests.post(
+        token_url,
+        headers=headers,
+        data=body,
+        auth=(GOOGLE_CLIENT_ID, GOOGLE_SECRET),
+    )
+    client.parse_request_body_response(json.dumps(token_response.json()))
+    userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
+    uri, headers, body = client.add_token(userinfo_endpoint)
+    userinfo_response = requests.get(uri, headers=headers, data=body)
+
+    result = result + "<p>token_response: " + token_response.text + "</p>"
+    if userinfo_response.json().get("email_verified"):
+        unique_id = userinfo_response.json()["sub"]
+        users_email = userinfo_response.json()["email"]
+        picture = userinfo_response.json()["picture"]
+        users_name = userinfo_response.json()["given_name"]
+    else:
+        return "User email not available or not verified by Google.", 400
+
+    user = User(id_=unique_id, name=users_name, email=users_email, profile_pic=picture)
+    if not User.get(unique_id):
+        User.create(unique_id, users_name, users_email, picture)
+    login_user(user)
+
+    return redirect('/')
+
+# Logout
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("index"))
+
+
+if __name__ == "__main__":
+    app.run(ssl_context="adhoc", port=5001)
 
 if __name__ == "__main__":
     socketio.run(app)
+
+
+
+
