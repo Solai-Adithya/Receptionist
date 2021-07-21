@@ -15,7 +15,7 @@ import os
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 os.environ["FLASK_ENVIRONMENT"] = "development"
 
-app = Flask(__name__, template_folder="./Frontend", static_folder="./static/")
+app = Flask(__name__)
 
 app.config["SECRET_KEY"] = "secret!"
 app.debug = True

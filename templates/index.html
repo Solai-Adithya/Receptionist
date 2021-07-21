@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block any_head %}
+<style>
+
+</style>
+{% endblock %}
+{% block main_content %}
+<div class="row row-cols-1 row-cols-sm-2 intro align-content-center justify-content-center h-100">
+  <div class="col px-2 py-2">
+    <div class="btn-group">
+      <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        Create New Room
+      </button>
+      <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="#">Viva</a></li>
+        <li><a class="dropdown-item" href="#">Interview</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="col px-2 py-2">
+    <button type="button" class="btn btn-primary">
+      Join a room
+    </button>
+  </div>
+</div>
+{% endblock %}
+{% block body_bottom %}
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"
+  integrity="sha512-eVL5Lb9al9FzgR63gDs1MxcDS2wFu3loYAgjIH0+Hg38tCS8Ag62dwKyH+wzDb+QauDpEZjXbMn11blw8cbTJQ=="
+  crossorigin="anonymous"></script>
+<script defer src="/static/client.js"></script>
+{% endblock %}
