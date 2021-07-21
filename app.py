@@ -10,6 +10,10 @@ from bson.objectid import ObjectId
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from oauthlib.oauth2 import WebApplicationClient
 from user import User
+import os
+
+os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+os.environ["FLASK_ENVIRONMENT"] = "development"
 
 app = Flask(__name__, template_folder="./Frontend", static_folder="./static/")
 
@@ -31,6 +35,7 @@ Rooms = db.Rooms
 def get_google_provider_cfg():
     return requests.get(GOOGLE_DISCOVERY_URL).json()
 
+
 # Homepage
 @app.route("/")
 def index():
@@ -42,22 +47,24 @@ def index():
             user_profile_pic=current_user.profile_pic,
         )
     else:
-        return render_template('homePageNotLoggedIn.html')
+        return render_template("homePageNotLoggedIn.html")
 
-@app.route('/findRoom/<roomId>/', methods=['GET'])
+
+@app.route("/findRoom/<roomId>/", methods=["GET"])
 def findRoom(roomId):
     queryObject = {"_id": ObjectId(str(roomId))}
     query = Rooms.find_one(queryObject)
-    query.pop('_id')
+    query.pop("_id")
     return dumps(query)
 
 
-@app.route('/findUser/<userId>/', methods=['GET'])
+@app.route("/findUser/<userId>/", methods=["GET"])
 def findUser(userId):
     queryObject = {"_id": ObjectId(str(userId))}
     query = Users.find_one(queryObject)
-    query.pop('_id')
+    query.pop("_id")
     return dumps(query)
+
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 login_manager = LoginManager()
@@ -67,6 +74,7 @@ login_manager.init_app(app)
 @login_manager.user_loader
 def load_user(user_id):
     return User.get(user_id)
+
 
 @app.route("/login")
 def login():
@@ -123,7 +131,8 @@ def callback():
         User.create(unique_id, users_name, users_email, picture)
     login_user(user)
 
-    return redirect('/')
+    return redirect("/")
+
 
 # Logout
 @app.route("/logout")
@@ -134,11 +143,7 @@ def logout():
 
 
 if __name__ == "__main__":
-    app.run(ssl_context="adhoc", port=5001)
+    app.run(host="localhost", port=5000)
 
 if __name__ == "__main__":
     socketio.run(app)
-
-
-
-
