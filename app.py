@@ -1,16 +1,32 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
-from flask.templating import render_template_string
-from flask_socketio import SocketIO
+import json
+import os
+import secrets
+from csv import reader
+from datetime import datetime
+from io import StringIO
+
 import pymongo
 import requests
-import json
-from constants import ATLAS_ADMIN_PWD, GOOGLE_CLIENT_ID, GOOGLE_DISCOVERY_URL, GOOGLE_SECRET
 from bson.json_util import dumps
 from bson.objectid import ObjectId
-from flask_login import LoginManager, login_required, login_user, logout_user, current_user
+from flask import Flask, redirect, render_template, request, url_for
+from flask_login import (
+    LoginManager,
+    current_user,
+    login_required,
+    login_user,
+    logout_user,
+)
+from flask_socketio import SocketIO
 from oauthlib.oauth2 import WebApplicationClient
+
+from constants import (
+    ATLAS_ADMIN_PWD,
+    GOOGLE_CLIENT_ID,
+    GOOGLE_DISCOVERY_URL,
+    GOOGLE_SECRET,
+)
 from user import User
-import os
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 os.environ["FLASK_ENVIRONMENT"] = "development"
@@ -48,6 +64,32 @@ def index():
         )
     else:
         return render_template("homePageNotLoggedIn.html")
+
+
+@app.route("/upcoming")
+@login_required
+def upcoming():
+    return render_template("upcoming.html")  # TODO
+
+
+@app.route("/create")
+def createRoom():
+    return render_template("newroom.html")
+
+
+@app.route("/attendees", methods=["POST"])
+def attendees():
+    start_time = datetime.strptime(
+        request.form["start-time"], r"%Y-%m-%dT%H:%M"
+    )
+    title = request.form["meet-title"]
+    link = request.form["meet-link"]
+    emails = request.files["uploadEmails"].read().decode()
+    room_id = secrets.token_urlsafe()
+    with StringIO(emails) as input_file:
+        csv_reader = reader(input_file, delimiter="\n")
+        emails = [row[0] for row in csv_reader]
+    return str(link)
 
 
 @app.route("/findRoom/<roomId>/", methods=["GET"])
@@ -97,7 +139,7 @@ def login():
 @app.route("/login/callback")
 def callback():
     code = request.args.get("code")
-    result = "<p>code: " + code + "</p>"
+    # result = "<p>code: " + code + "</p>"
     google_provider_cfg = get_google_provider_cfg()
     token_endpoint = google_provider_cfg["token_endpoint"]
     token_url, headers, body = client.prepare_token_request(
@@ -117,7 +159,7 @@ def callback():
     uri, headers, body = client.add_token(userinfo_endpoint)
     userinfo_response = requests.get(uri, headers=headers, data=body)
 
-    result = result + "<p>token_response: " + token_response.text + "</p>"
+    # result = result + "<p>token_response: " + token_response.text + "</p>"
     if userinfo_response.json().get("email_verified"):
         unique_id = userinfo_response.json()["sub"]
         users_email = userinfo_response.json()["email"]
@@ -126,7 +168,9 @@ def callback():
     else:
         return "User email not available or not verified by Google.", 400
 
-    user = User(id_=unique_id, name=users_name, email=users_email, profile_pic=picture)
+    user = User(
+        id_=unique_id, name=users_name, email=users_email, profile_pic=picture
+    )
     if not User.get(unique_id):
         User.create(unique_id, users_name, users_email, picture)
     login_user(user)
