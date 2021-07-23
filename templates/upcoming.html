@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block any_head %}
+<style>
+  .main-header {
+    color: rgb(233, 22, 127);
+    font-size: 25px;
+    padding-top: 20px;
+  }
+
+  .main-queue {
+    padding-top: 100px;
+  }
+</style>
+{% endblock %}
+{% block main_content %}
+<div class="main-queue">
+  <a class="btn btn-info btn-lg" href="/create">Create queue</a>
+  <a class="btn btn-light btn-lg" href="/join">Join queue</a>
+</div>
+<br />
+<div class="main-header">Upcoming</div>
+<div class="container">
+  <table class="table">
+    <thead>
+      <tr>
+        <th class="col">Title</th>
+        <th class="col">Link</th>
+        <th class="col">Date</th>
+        <th class="col">Join</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for element in table %}
+      <tr>
+        <td>{{element.Title}}</td>
+        <td>{{element.Link}}</td>
+        <td>{{element.Date}}</td>
+        <td>{{element.Time}}</td> # TODO: add link
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

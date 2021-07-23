@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block any_head %}
+<meta name="google-signin-client_id" content="194552875283-rfaf8feg3jr9uu84r5h6d40e4nvmcvoi.apps.googleusercontent.com">
+<script src="https://apis.google.com/js/platform.js" defer></script>
+{% endblock %}
+{% block main_content %}
+<div class="row px-2 py-2 h-100 align-content-center">
+  <div class="col-md-12">
+    <a href="login">Click to Sign in using google oauth</a>
+  </div>
+</div>
+{% endblock %}
