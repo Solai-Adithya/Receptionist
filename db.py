@@ -1,10 +1,7 @@
-from flask.helpers import get_root_path
 import pymongo
 from flask_login import UserMixin
-from bson.json_util import dumps
-from bson.objectid import ObjectId
 from constants import ATLAS_ADMIN_PWD
-from functions import generateRoomID
+
 # from db import get_db
 
 connectionURL = (
@@ -16,6 +13,7 @@ db = dbclient.get_database("Reception")
 UsersCollection = db.Users
 RoomsCollection = db.Rooms
 ParticipantsCollection = db.Participants
+
 
 class User(UserMixin):
     def __init__(self, id_, name, first_name, email, profile_pic):
@@ -30,7 +28,13 @@ class User(UserMixin):
         user = UsersCollection.find_one({"userID": user_id})
         if not user:
             return None
-        user = User(user["_id"], user["name"], user["first_name"], user["email"], user["profile_pic"])
+        user = User(
+            user["_id"],
+            user["name"],
+            user["first_name"],
+            user["email"],
+            user["profile_pic"],
+        )
         return user
 
     @staticmethod
@@ -45,6 +49,7 @@ class User(UserMixin):
             }
         )
 
+
 class Rooms:
     @staticmethod
     def getRoomByID(room_id):
@@ -53,26 +58,27 @@ class Rooms:
             return None
         print(room)
         return room
-    
+
     @staticmethod
     def getRoomsByCreator(email):
         rooms = RoomsCollection.find({"email": email})
         if not rooms:
             return None
-        print(rooms) # should be list of rooms, not checked for errors
-        return rooms    
-    
+        print(rooms)  # should be list of rooms, not checked for errors
+        return rooms
+
     @staticmethod
     def getRoomsByParticipant(email):
         rooms = RoomsCollection.find({"email": email})
         if not rooms:
             return None
-        print(rooms) # should be list of rooms, not checked for errors
+        print(rooms)  # should be list of rooms, not checked for errors
         return rooms
 
     @staticmethod
     def createRoom(roomDetails):
         RoomsCollection.insert_one(roomDetails)
+
 
 class Participants:
     @staticmethod
@@ -80,7 +86,9 @@ class Participants:
         participants = ParticipantsCollection.find({"roomID": room_id})
         if not participants:
             return None
-        print(participants) # should be list of participants, not checked for errors
+        print(
+            participants
+        )  # should be list of participants, not checked for errors
         return participants
 
     @staticmethod
@@ -88,15 +96,17 @@ class Participants:
         documents = []
         queuePosition = 100
         for email in emails:
-            documents.append({
-                "roomID": room_id, 
-                "email": email,
-                "status": "open",
-                "windowLowerBound": None,
-                "windowUpperBound": None,
-                "queuePosition": queuePosition,
-                "notifiedByWebsite": False,
-                "notifiedByEmail": False
-            })
+            documents.append(
+                {
+                    "roomID": room_id,
+                    "email": email,
+                    "status": "open",
+                    "windowLowerBound": None,
+                    "windowUpperBound": None,
+                    "queuePosition": queuePosition,
+                    "notifiedByWebsite": False,
+                    "notifiedByEmail": False,
+                }
+            )
             queuePosition += 100
         ParticipantsCollection.insert_many(documents)
