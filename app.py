@@ -26,10 +26,13 @@ from constants import (
     GOOGLE_DISCOVERY_URL,
     GOOGLE_SECRET,
 )
-from user import User
+from functions import generateRoomID
+from db import User, Rooms, Participants
+rooms = Rooms()
+participants = Participants()
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
-os.environ["FLASK_ENVIRONMENT"] = "development"
+os.environ["FLASK_ENV"] = "development"
 
 app = Flask(__name__)
 
@@ -37,15 +40,6 @@ app.config["SECRET_KEY"] = "secret!"
 app.debug = True
 
 socketio = SocketIO(app)
-
-connectionURL = (
-    "mongodb+srv://adhiAtlasAdmin:%s@cluster0.cjyig.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-    % ATLAS_ADMIN_PWD
-)
-dbclient = pymongo.MongoClient(connectionURL)
-db = dbclient.get_database("Reception")
-Users = db.Users
-Rooms = db.Rooms
 
 # Login
 def get_google_provider_cfg():
@@ -72,60 +66,86 @@ def upcoming():
     return render_template("upcoming.html")  # TODO
 
 
-@app.route("/create")
-def createRoom():
-    return render_template("newroom.html")
+@app.route("/create/add")
+def createRoom_add():
+    return render_template("newroom_add.html")
+
+@app.route("/create/invite")
+def createRoom_invite():
+    return render_template("newroom_invite.html")
 
 
-@app.route("/attendees", methods=["POST"])
-def attendees():
-    start_time = datetime.strptime(
-        request.form["start-time"], r"%Y-%m-%dT%H:%M"
-    )
-    title = request.form["meet-title"]
+@app.route("/attendees/add", methods=["POST"])
+def attendees_add():
+    room_id = generateRoomID()
+    while(rooms.getRoomByID(room_id) != None): 
+        room_id = generateRoomID()
+
+    startDate = datetime.strptime(request.form["start-date"], r"%Y-%m-%d")
+    startTime = datetime.strptime(request.form["start-time"], r"%H:%M")
+    start_datetime = datetime.combine(startDate.date(), startTime.time())
+    name = request.form["name"]
     link = request.form["meet-link"]
+    description = request.form["description"]
     emails = request.files["uploadEmails"].read().decode()
-    room_id = secrets.token_urlsafe()
     with StringIO(emails) as input_file:
         csv_reader = reader(input_file, delimiter="\n")
         emails = [row[0] for row in csv_reader]
-    return str(link)
 
+    roomDetails = {
+        "_id": room_id,
+        "start_date": start_datetime,
+        "name": name,
+        "description": description,
+        "meeting_link": link
+    }
 
-@app.route("/findRoom/<roomId>/", methods=["GET"])
-def findRoom(roomId):
-    queryObject = {"_id": ObjectId(str(roomId))}
-    query = Rooms.find_one(queryObject)
-    query.pop("_id")
-    return dumps(query)
+    rooms.createRoom(roomDetails)
+    participants.addParticipants(room_id, emails)
+    return redirect(url_for("manage", roomID=room_id))
 
+@app.route("/attendees/invite", methods=["POST"])
+def attendees_invite():
+    startDate = datetime.strptime(request.form["start-date"], r"%Y-%m-%d")
+    startTime = datetime.strptime(request.form["start-time"], r"%H:%M")
+    start_datetime = datetime.combine(startDate.date(), startTime.time())
+    name = request.form["name"]
+    link = request.form["meet-link"]
+    description = request.form["description"]
+    room_id = request.form["room-id"]
+    roomDetails = {
+        "_id": room_id,
+        "start_date": start_datetime,
+        "name": name,
+        "description": description,
+        "meeting_link": link
+    }
 
-@app.route("/findUser/<userId>/", methods=["GET"])
-def findUser(userId):
-    queryObject = {"_id": ObjectId(str(userId))}
-    query = Users.find_one(queryObject)
-    query.pop("_id")
-    return dumps(query)
-
+    if(rooms.getRoomByID(room_id) == None):
+        rooms.createRoom(roomDetails)
+        return redirect(url_for("manage", roomID=room_id))
+    else:
+        return "Sorry!, that room code is already taken, please refill data" # Replace with HTML page with the form details present and just error saying room code already exists
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-# Flask-Login helper to retrieve a user from our db
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.get(user_id)
 
 
+@app.route("/manage/<roomID>/")
+def manage(roomID):
+    return render_template("manage.html", roomID=roomID)
+
 @app.route("/login")
 def login():
-    # Find out what URL to hit for Google login
     google_provider_cfg = get_google_provider_cfg()
     authorization_endpoint = google_provider_cfg["authorization_endpoint"]
 
-    # Use library to construct the request for Google login and provide
-    # scopes that let you retrieve user's profile from Google
     request_uri = client.prepare_request_uri(
         authorization_endpoint,
         redirect_uri=request.base_url + "/callback",
@@ -134,8 +154,6 @@ def login():
 
     return redirect(request_uri)
 
-
-# Login Callback
 @app.route("/login/callback")
 def callback():
     code = request.args.get("code")
@@ -161,18 +179,20 @@ def callback():
 
     # result = result + "<p>token_response: " + token_response.text + "</p>"
     if userinfo_response.json().get("email_verified"):
+        print("LOOKUP HERE:",userinfo_response.json())
         unique_id = userinfo_response.json()["sub"]
         users_email = userinfo_response.json()["email"]
         picture = userinfo_response.json()["picture"]
-        users_name = userinfo_response.json()["given_name"]
+        name = userinfo_response.json()["name"]
+        first_name = userinfo_response.json()["given_name"]
     else:
         return "User email not available or not verified by Google.", 400
 
     user = User(
-        id_=unique_id, name=users_name, email=users_email, profile_pic=picture
+        id_=unique_id, name=name, first_name=first_name, email=users_email, profile_pic=picture
     )
     if not User.get(unique_id):
-        User.create(unique_id, users_name, users_email, picture)
+        User.create(unique_id, name, first_name, users_email, picture)
     login_user(user)
 
     return redirect("/")
@@ -183,11 +203,24 @@ def callback():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for("index"))
+    return redirect("/")
 
+
+# @app.route("/findRoom/<roomId>/", methods=["GET"])
+# def findRoom(roomId):
+#     queryObject = {"_id": ObjectId(str(roomId))}
+#     query = Rooms.find_one(queryObject)                   #Rooms collection
+#     query.pop("_id")
+#     return dumps(query)
+
+
+# @app.route("/findUser/<userId>/", methods=["GET"])
+# def findUser(userId):
+#     queryObject = {"_id": ObjectId(str(userId))}
+#     query = Users.find_one(queryObject)                   #Users collection
+#     query.pop("_id")
+#     return dumps(query)
 
 if __name__ == "__main__":
     app.run(host="localhost", port=5000)
-
-if __name__ == "__main__":
     socketio.run(app)
