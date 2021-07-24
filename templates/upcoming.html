@@ -14,8 +14,20 @@
 {% endblock %}
 {% block main_content %}
 <div class="main-queue">
-  <a class="btn btn-info btn-lg" href="/create">Create New Room</a>
-  <a class="btn btn-light btn-lg" href="/join">Join a Room</a>
+  <!-- TODO: uncomment below line and make the next two lines options present in a popup. Popup should open when create room button is pressed-->
+  <!-- <a class="btn btn-info btn-lg" href="/create">Create New Room</a> -->
+  <div class="dropdown">
+    <button class="btn btn-info btn-lg dropdown-toggle" type="button" id="dropdownMenu1" data-bs-toggle="dropdown" aria-expanded="false">
+      Create New Room
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+      <li><a class="dropdown-item" href="/create/invite">create shareable code</a></li>
+      <li><a class="dropdown-item" href="/create/invite">add participants using email</a></li>
+    </ul>
+  </div>
+  <div>
+    <a class="btn btn-light btn-lg" href="/join">Join a Room</a>
+  </div>
 </div>
 <br />
 <div class="main-header">Upcoming</div>
