@@ -46,13 +46,8 @@ def get_google_provider_cfg():
 @app.route("/")
 def home():
     if current_user.is_authenticated:
-<<<<<<< HEAD
         return render_template(
             "upcoming.html",
-=======
-        return render_template(  # TODO
-            "index.html",
->>>>>>> 35291db9d0941c4c9dd3b45f15ded32ecd77379a
             user_name=current_user.name,
             user_email=current_user.email,
             user_profile_pic=current_user.profile_pic,
@@ -61,16 +56,6 @@ def home():
         return render_template("homePageNotLoggedIn.html")
 
 
-<<<<<<< HEAD
-=======
-# Upcoming
-@app.route("/upcoming")
-@login_required
-def upcoming():
-    return render_template("upcoming.html")  # TODO
-
-
->>>>>>> 35291db9d0941c4c9dd3b45f15ded32ecd77379a
 @app.route("/create/add")
 def createRoom_add():
     return render_template("newroom_add.html")
