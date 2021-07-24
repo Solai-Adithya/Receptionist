@@ -57,16 +57,19 @@ def home():
 
 
 @app.route("/create/add")
+@login_required
 def createRoom_add():
     return render_template("newroom_add.html")
 
 
 @app.route("/create/invite")
+@login_required
 def createRoom_invite():
     return render_template("newroom_invite.html")
 
 
 @app.route("/attendees/add", methods=["POST"])
+@login_required
 def attendees_add():
     room_id = generateRoomID()
     while rooms.getRoomByID(room_id) is not None:
@@ -91,6 +94,7 @@ def attendees_add():
         "name": name,
         "description": description,
         "meeting_link": link,
+        "creator": current_user.email
     }
 
     rooms.createRoom(roomDetails)
@@ -99,6 +103,7 @@ def attendees_add():
 
 
 @app.route("/attendees/invite", methods=["POST"])
+@login_required
 def attendees_invite():
     startDate = datetime.strptime(request.form["start-date"], r"%Y-%m-%d")
     startTime = datetime.strptime(request.form["start-time"], r"%H:%M")
@@ -113,6 +118,7 @@ def attendees_invite():
         "name": name,
         "description": description,
         "meeting_link": link,
+        "creator": current_user.email
     }
 
     if rooms.getRoomByID(room_id) == None:
@@ -132,6 +138,7 @@ def load_user(user_id):
 
 
 @app.route("/manage/<roomID>/")
+@login_required
 def manage(roomID):
     return render_template("manage.html", roomID=roomID)
 
