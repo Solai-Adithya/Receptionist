@@ -48,22 +48,16 @@ def get_google_provider_cfg():
 
 # Homepage
 @app.route("/")
-def index():
+def home():
     if current_user.is_authenticated:
         return render_template(
-            "index.html",
+            "upcoming.html",
             user_name=current_user.name,
             user_email=current_user.email,
             user_profile_pic=current_user.profile_pic,
         )
     else:
         return render_template("homePageNotLoggedIn.html")
-
-
-@app.route("/upcoming")
-@login_required
-def upcoming():
-    return render_template("upcoming.html")  # TODO
 
 
 @app.route("/create/add")
