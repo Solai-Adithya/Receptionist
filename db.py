@@ -59,16 +59,16 @@ class Rooms:
         rooms = RoomsCollection.find({"email": email})
         if not rooms:
             return None
-        # room = (room["_id"], room["name"], room["type"], room["capacity"], room["location"], room["description"])
+        print(rooms) # should be list of rooms, not checked for errors
         return rooms    
     
     @staticmethod
     def getRoomsByParticipant(email):
-        room = RoomsCollection.find({"email": email})
-        if not room:
+        rooms = RoomsCollection.find({"email": email})
+        if not rooms:
             return None
-        # room = (room["_id"], room["name"], room["type"], room["capacity"], room["location"], room["description"])
-        return room
+        print(rooms) # should be list of rooms, not checked for errors
+        return rooms
 
     @staticmethod
     def createRoom(roomDetails):
@@ -80,6 +80,7 @@ class Participants:
         participants = ParticipantsCollection.find({"roomID": room_id})
         if not participants:
             return None
+        print(participants) # should be list of participants, not checked for errors
         return participants
 
     @staticmethod

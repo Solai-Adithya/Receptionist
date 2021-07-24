@@ -206,21 +206,6 @@ def logout():
     return redirect("/")
 
 
-# @app.route("/findRoom/<roomId>/", methods=["GET"])
-# def findRoom(roomId):
-#     queryObject = {"_id": ObjectId(str(roomId))}
-#     query = Rooms.find_one(queryObject)                   #Rooms collection
-#     query.pop("_id")
-#     return dumps(query)
-
-
-# @app.route("/findUser/<userId>/", methods=["GET"])
-# def findUser(userId):
-#     queryObject = {"_id": ObjectId(str(userId))}
-#     query = Users.find_one(queryObject)                   #Users collection
-#     query.pop("_id")
-#     return dumps(query)
-
 if __name__ == "__main__":
     app.run(host="localhost", port=5000)
     socketio.run(app)
