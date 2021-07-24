@@ -1,6 +1,6 @@
 import random
+
+
 def generateRoomID():
-    roomID = ""
-    for i in range(4):
-        roomID += chr(random.randint(97,122))
+    roomID = "".join([chr(random.randint(97, 122)) for _ in range(16)])
     return roomID
