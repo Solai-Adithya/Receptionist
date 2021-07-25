@@ -182,13 +182,14 @@ def callback():
     userinfo_response = requests.get(uri, headers=headers, data=body)
 
     # result = result + "<p>token_response: " + token_response.text + "</p>"
-    if userinfo_response.json().get("email_verified"):
-        print("LOOKUP HERE:", userinfo_response.json())
-        unique_id = userinfo_response.json()["sub"]
-        users_email = userinfo_response.json()["email"]
-        picture = userinfo_response.json()["picture"]
-        name = userinfo_response.json()["name"]
-        first_name = userinfo_response.json()["given_name"]
+    userinfo_data = userinfo_response.json()
+    if userinfo_data.get("email_verified") is not None:
+        print("LOOKUP HERE:", userinfo_data)
+        unique_id = userinfo_data["sub"]
+        users_email = userinfo_data["email"]
+        picture = userinfo_data["picture"]
+        name = userinfo_data["name"]
+        first_name = userinfo_data["given_name"]
     else:
         return "User email not available or not verified by Google.", 400
 
