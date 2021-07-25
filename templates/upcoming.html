@@ -3,7 +3,6 @@
 <style>
   .main-header {
     color: rgb(233, 22, 127);
-    font-size: 25px;
     padding-top: 20px;
   }
 
@@ -17,12 +16,13 @@
   <!-- TODO: uncomment below line and make the next two lines options present in a popup. Popup should open when create room button is pressed-->
   <!-- <a class="btn btn-info btn-lg" href="/create">Create New Room</a> -->
   <div class="dropdown">
-    <button class="btn btn-info btn-lg dropdown-toggle" type="button" id="dropdownMenu1" data-bs-toggle="dropdown" aria-expanded="false">
+    <button class="btn btn-info btn-lg dropdown-toggle" type="button" id="dropdownMenu1" data-bs-toggle="dropdown"
+      aria-expanded="false">
       Create New Room
     </button>
-    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-      <li><a class="dropdown-item" href="/create/invite">create shareable code</a></li>
-      <li><a class="dropdown-item" href="/create/invite">add participants using email</a></li>
+    <ul class="dropdown-menu">
+      <li><a class="dropdown-item" href="/create/invite">Create shareable code</a></li>
+      <li><a class="dropdown-item" href="/create/add">Add participants using email</a></li>
     </ul>
   </div>
   <div>
@@ -30,24 +30,27 @@
   </div>
 </div>
 <br />
-<div class="main-header">Upcoming</div>
+<h3 class="main-header">Upcoming</h3>
 <div class="container">
-  <table class="table">
+  <table class="table table-bordered border-success table-hover" style="vertical-align: middle;">
     <thead>
       <tr>
-        <th class="col">Title</th>
-        <th class="col">Link</th>
-        <th class="col">Date</th>
-        <th class="col">Join</th>
+        <th class="col-1">#</th>
+        <th class="col-2">Title</th>
+        <th class="col-3">Link</th>
+        <th class="col-2">Date&Time</th>
+        <th class="col-1">Join</th>
       </tr>
     </thead>
     <tbody>
       {% for element in table %}
       <tr>
-        <td>{{element.Title}}</td>
-        <td>{{element.Link}}</td>
-        <td>{{element.Date}}</td>
-        <td>{{element.Time}}</td> # TODO: add link
+        <td>{{ loop.index }}</td>
+        <td>{{element["description"]}}</td>
+        <td><a class="link-primary" href="{{element['meeting_link']}}" </a>{{element['meeting_link']}}</td>
+        <td>{{element["start_date"]}}</td>
+        <td><a class="btn btn-primary btn-md" href="/join/{{element['_id']}}">Join</a></td>
+        <!--# TODO: add join link</telement>-->
       </tr>
       {% endfor %}
     </tbody>
