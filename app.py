@@ -5,7 +5,14 @@ from datetime import datetime
 from io import StringIO
 
 import requests
-from flask import Flask, redirect, render_template, request, url_for
+from flask import (
+    Flask,
+    redirect,
+    render_template,
+    request,
+    url_for,
+    abort as flask_abort,
+)
 from flask_login import (
     LoginManager,
     current_user,
@@ -46,8 +53,12 @@ def get_google_provider_cfg():
 @app.route("/")
 def home():
     if current_user.is_authenticated:
+        allRooms = Rooms.getRoomsByCreator(
+            current_user.email
+        )  # TODO: get rooms also as participant
         return render_template(
             "upcoming.html",
+            table=allRooms,
             user_name=current_user.name,
             user_email=current_user.email,
             user_profile_pic=current_user.profile_pic,
@@ -56,80 +67,72 @@ def home():
         return render_template("homePageNotLoggedIn.html")
 
 
-@app.route("/create/add")
+@app.route("/create/<method>")
 @login_required
-def createRoom_add():
-    return render_template("newroom_add.html")
-
-
-@app.route("/create/invite")
-@login_required
-def createRoom_invite():
-    return render_template("newroom_invite.html")
-
-
-@app.route("/attendees/add", methods=["POST"])
-@login_required
-def attendees_add():
-    room_id = generateRoomID()
-    while rooms.getRoomByID(room_id) is not None:
-        room_id = generateRoomID()
-
-    startDate = datetime.strptime(request.form["start-date"], r"%Y-%m-%d")
-    startTime = datetime.strptime(request.form["start-time"], r"%H:%M")
-    start_datetime = datetime.combine(startDate.date(), startTime.time())
-
-    name = request.form["name"]
-    link = request.form["meet-link"]
-    description = request.form["description"]
-    emails = request.files["uploadEmails"].read().decode()
-
-    with StringIO(emails) as input_file:
-        csv_reader = reader(input_file, delimiter="\n")
-        emails = [row[0] for row in csv_reader]
-
-    roomDetails = {
-        "_id": room_id,
-        "start_date": start_datetime,
-        "name": name,
-        "description": description,
-        "meeting_link": link,
-        "creator": current_user.email
-    }
-
-    rooms.createRoom(roomDetails)
-    participants.addParticipants(room_id, emails)
-    return redirect(url_for("manage", roomID=room_id))
-
-
-@app.route("/attendees/invite", methods=["POST"])
-@login_required
-def attendees_invite():
-    startDate = datetime.strptime(request.form["start-date"], r"%Y-%m-%d")
-    startTime = datetime.strptime(request.form["start-time"], r"%H:%M")
-    start_datetime = datetime.combine(startDate.date(), startTime.time())
-    name = request.form["name"]
-    link = request.form["meet-link"]
-    description = request.form["description"]
-    room_id = request.form["room-id"]
-    roomDetails = {
-        "_id": room_id,
-        "start_date": start_datetime,
-        "name": name,
-        "description": description,
-        "meeting_link": link,
-        "creator": current_user.email
-    }
-
-    if rooms.getRoomByID(room_id) == None:
-        rooms.createRoom(roomDetails)
-        return redirect(url_for("manage", roomID=room_id))
+def createRoom(method):
+    if method in ("add", "invite"):
+        return render_template(
+            "newroom.html", add=(method == "add"), method=method
+        )
     else:
-        return "Sorry!, that room code is already taken, please refill data"
-        # Replace with HTML page with the form details present and just error saying room code already exists
-        # Potential:
-        # Maybe use "flash" ?
-        # Or check the roomId while typing using AjaX ?
+        flask_abort(404)
+
+
+@app.route("/attendees/<method>", methods=["POST"])
+@login_required
+def attendees_add(method):
+
+    startDate = datetime.strptime(request.form["start-date"], r"%Y-%m-%d")
+    startTime = datetime.strptime(request.form["start-time"], r"%H:%M")
+    start_datetime = datetime.combine(startDate.date(), startTime.time())
+
+    name = request.form["name"]
+    link = request.form["meet-link"]
+    description = request.form["description"]
+    room_id = None
+
+    roomDetails = {
+        "_id": room_id,
+        "start_date": start_datetime,
+        "name": name,
+        "description": description,
+        "meeting_link": link,
+        "creator": current_user.email,
+    }
+
+    if method == "add":
+
+        room_id = generateRoomID()
+        while rooms.getRoomByID(room_id) is not None:
+            room_id = generateRoomID()
+        roomDetails["_id"] = room_id
+
+        emails = request.files["uploadEmails"].read().decode()
+
+        with StringIO(emails) as input_file:
+            csv_reader = reader(input_file, delimiter="\n")
+            emails = [row[0] for row in csv_reader]
+
+        rooms.createRoom(roomDetails)
+        participants.addParticipants(room_id, emails)
+        return redirect(url_for("manage", roomID=room_id))
+
+    elif method == "invite":
+
+        room_id = request.form["room-id"]
+        roomDetails["_id"] = room_id
+
+        if rooms.getRoomByID(room_id) is None:
+            rooms.createRoom(roomDetails)
+            return redirect(url_for("manage", roomID=room_id))
+        else:
+            return (
+                "Sorry!, that room code is already taken, please refill data"
+            )
+            # Replace with HTML page with the form details present and just error saying room code already exists
+            # Potential:
+            # Maybe use "flash" ?
+            # Or check the roomId while typing using AjaX ?
 
 
 @login_manager.user_loader
@@ -182,13 +185,14 @@ def callback():
     userinfo_response = requests.get(uri, headers=headers, data=body)
 
     # result = result + "<p>token_response: " + token_response.text + "</p>"
-    if userinfo_response.json().get("email_verified"):
-        print("LOOKUP HERE:", userinfo_response.json())
-        unique_id = userinfo_response.json()["sub"]
-        users_email = userinfo_response.json()["email"]
-        picture = userinfo_response.json()["picture"]
-        name = userinfo_response.json()["name"]
-        first_name = userinfo_response.json()["given_name"]
+    userinfo_data = userinfo_response.json()
+    if userinfo_data.get("email_verified") is not None:
+        print("LOOKUP HERE:", userinfo_data)
+        unique_id = userinfo_data["sub"]
+        users_email = userinfo_data["email"]
+        picture = userinfo_data["picture"]
+        name = userinfo_data["name"]
+        first_name = userinfo_data["given_name"]
     else:
         return "User email not available or not verified by Google.", 400
 

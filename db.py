@@ -61,7 +61,7 @@ class Rooms:
 
     @staticmethod
     def getRoomsByCreator(email):
-        rooms = RoomsCollection.find({"email": email})
+        rooms = RoomsCollection.find({"creator": email})
         if not rooms:
             return None
         print(rooms)  # should be list of rooms, not checked for errors
