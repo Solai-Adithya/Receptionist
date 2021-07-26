@@ -3,7 +3,7 @@ import os
 from csv import reader
 from datetime import datetime
 from io import StringIO
-from pprint import pformat, pprint
+from pprint import pprint
 
 import requests
 from flask import Flask
@@ -20,7 +20,7 @@ from flask_socketio import SocketIO, emit, join_room, leave_room, send
 from oauthlib.oauth2 import WebApplicationClient
 
 from constants import GOOGLE_CLIENT_ID, GOOGLE_DISCOVERY_URL, GOOGLE_SECRET
-from db import Participants, Rooms, RoomsCollection, User
+from db import Participants, Rooms, User
 from functions import authenticated_only, generateRoomID
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"

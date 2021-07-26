@@ -1,6 +1,5 @@
 import pymongo
 from flask_login import UserMixin
-from bson.json_util import dumps
 from constants import ATLAS_ADMIN_PWD
 from datetime import datetime
 
