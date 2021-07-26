@@ -63,7 +63,7 @@ class Rooms:
     def getRoomsByCreator(email, projection=None):
         rooms = RoomsCollection.find(
             {"creator": email},
-            sort=[("start_date", pymongo.DESCENDING)],
+            sort=[("start_date", pymongo.ASCENDING)],
             projection=projection,
         )
         return rooms
@@ -101,7 +101,11 @@ class Participants:
                         }
                     }
                 },
-                {"$sort": {"roomID.start_date": -1}},  # sort decreasing
+                {
+                    "$sort": {
+                        "roomID.start_date": pymongo.ASCENDING,
+                    }
+                },
             ]
         )
 
@@ -111,7 +115,10 @@ class Participants:
     @staticmethod
     def getParticipantsByRoom(room_id):
         participants = ParticipantsCollection.find(
-            {"roomID": room_id}, sort=[("queuePosition", pymongo.ASCENDING)]
+            {"roomID": room_id},
+            sort=[
+                ("queuePosition", pymongo.ASCENDING),
+            ],
         )
         return participants
 
