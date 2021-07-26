@@ -2,6 +2,7 @@ import pymongo
 from flask_login import UserMixin
 from bson.json_util import dumps
 from constants import ATLAS_ADMIN_PWD
+from datetime import datetime
 
 connectionURL = (
     "mongodb+srv://adhiAtlasAdmin:%s@cluster0.cjyig.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
@@ -22,7 +23,7 @@ class User(UserMixin):
         self.email = email
         self.profile_pic = profile_pic
 
-    #Fetch user using id
+    # Fetch user using id
     @staticmethod
     def get(user_id):
         user = UsersCollection.find_one({"userID": user_id})
@@ -37,7 +38,7 @@ class User(UserMixin):
         )
         return user
 
-    #Create a new user
+    # Create a new user
     @staticmethod
     def create(id_, name, first_name, email, profile_pic):
         UsersCollection.insert_one(
@@ -52,57 +53,70 @@ class User(UserMixin):
 
 
 class Rooms:
-    #Fetch room details using room ID
+    # Fetch room details using room ID
     @staticmethod
     def getRoomByID(room_id):
         room = RoomsCollection.find_one({"_id": room_id})
-        if not room:
-            return None
-        return dict(room)
+        return room
 
-    #Fetch all rooms created by a user
+    # Fetch all rooms created by a user
     @staticmethod
-    def getRoomsByCreator(email):
-        rooms = RoomsCollection.find({"creator": email})
-        if not rooms:
-            return None
-        return list(rooms)
+    def getRoomsByCreator(email, projection=None):
+        rooms = RoomsCollection.find(
+            {"creator": email},
+            sort=[("start_date", pymongo.DESCENDING)],
+            projection=projection,
+        )
+        return rooms
 
-    #Create a new room
+    # Create a new room
     @staticmethod
     def createRoom(roomDetails):
         RoomsCollection.insert_one(roomDetails)
 
 
 class Participants:
-    #List of rooms where the user is a participant
-    #TODO: Add a method to fetch rooms where user is a participant after the present date
+
+    # List of rooms where the user is a participant
     @staticmethod
     def getRoomsByParticipant(email):
-        rooms = ParticipantsCollection.find({"email": email})
-        if not rooms:
-            return None
-        rooms = list(rooms)
-        for i in range(len(rooms)):
-            room = rooms[i]
-            roomDetails = Rooms.getRoomByID(room["roomID"])
-            if(roomDetails == None): #Room ID is present in the participants collection but not in the rooms collection
-                return "Database Mismatch"
-            rooms[i].update(roomDetails)
-        rooms = sorted(rooms, key=lambda k: k["startTime"])
+        rooms = ParticipantsCollection.aggregate(
+            [
+                {"$match": {"email": email}},
+                {"$project": {"roomID": 1, "_id": 0}},
+                {
+                    "$lookup": {
+                        "from": "Rooms",
+                        "localField": "roomID",
+                        "foreignField": "_id",
+                        "as": "roomID",
+                    }
+                },
+                {"$unwind": {"path": "$roomID"}},
+                {
+                    "$match": {
+                        "roomID.start_date": {
+                            "$gte": datetime.utcnow().replace(
+                                hour=0, minute=0, second=0
+                            )
+                        }
+                    }
+                },
+                {"$sort": {"roomID.start_date": -1}},  # sort decreasing
+            ]
+        )
+
         return rooms
 
-    #List of participants in a room
+    # List of participants in a room
     @staticmethod
     def getParticipantsByRoom(room_id):
-        participants = ParticipantsCollection.find({"roomID": room_id})
-        if not participants:
-            return None
-        participants = list(participants)
-        participants = sorted(participants, key=lambda k: k["queuePosition"])
+        participants = ParticipantsCollection.find(
+            {"roomID": room_id}, sort=[("queuePosition", pymongo.ASCENDING)]
+        )
         return participants
 
-    #Add participants to a room
+    # Add participants to a room
     @staticmethod
     def addParticipants(room_id, emails):
         documents = []

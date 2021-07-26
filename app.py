@@ -3,6 +3,7 @@ import os
 from csv import reader
 from datetime import datetime
 from io import StringIO
+from pprint import pformat, pprint
 
 import requests
 from flask import Flask
@@ -19,8 +20,8 @@ from flask_socketio import SocketIO, emit, join_room, leave_room, send
 from oauthlib.oauth2 import WebApplicationClient
 
 from constants import GOOGLE_CLIENT_ID, GOOGLE_DISCOVERY_URL, GOOGLE_SECRET
-from db import Participants, Rooms, User
-from functions import generateRoomID, authenticated_only
+from db import Participants, Rooms, RoomsCollection, User
+from functions import authenticated_only, generateRoomID
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 os.environ["FLASK_ENV"] = "development"
@@ -138,8 +139,19 @@ def load_user(user_id):
 @app.route("/manage/<roomID>/")
 @login_required
 def manage(roomID):
-    participantsInRoom = participants.getParticipantsByRoom(roomID)
-    return render_template("manage.html", roomID=roomID, participants=participantsInRoom)
+    participantsofRoom = participants.getParticipantsByRoom(roomID)
+    print("Participants for given roomID are:", participantsofRoom)
+    pprint(list(participantsofRoom))
+    print("current user email is:", current_user.email)
+    RoomsbyParicipation = participants.getRoomsByParticipant(
+        "b19268@students.iitmandi.ac.in"  # DEBUG
+    )
+    print(
+        "Rooms for given Participant are:",
+        RoomsbyParicipation,
+    )
+    pprint(list(RoomsbyParicipation))
+    return render_template("manage.html", roomID=roomID)
 
 
 # Login
@@ -241,4 +253,6 @@ def test_disconnect():
 
 
 if __name__ == "__main__":
-    socketio.run(app, host="localhost", port=5000)
+    socketio.run(
+        app, host="localhost", port=5000, log_output=True, use_reloader=True
+    )
