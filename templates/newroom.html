@@ -2,15 +2,13 @@
 {% block main_content %}
 <div class="my-5" style="margin-left: auto; margin-right: auto;">
     <h3>Create a Room</h3>
-    {% if add %}
-    <p>Email of Interviewees (in csv/Excel, one column format, no header)</p>
-    {% endif %}
     <form action="/attendees/{{method}}" method="POST" class="mx-auto" enctype="multipart/form-data"
         style="max-width: 500px;">
         <div class="row row-cols-1 input-group custom-file mb-3">
             <div class="col my-1">
                 {% if add %}
-                <input type="file" name="uploadEmails" class="form-control" required>
+                <label for="emailFile">Email of Interviewees (in csv/Excel, one column format, no header)</label>
+                <input type="file" id="emailFile" name="uploadEmails" class="form-control" required>
                 {% else %}
                 <label for="room-id">Room code (Input custom code or enable option to autogenerate):</label>
                 <input type="text" name="room-id" id="room-id" required>
