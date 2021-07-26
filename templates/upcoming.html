@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block any_head %}
 <style>
-  .main-header {
+  .table-header {
     color: rgb(233, 22, 127);
     padding-top: 20px;
   }
@@ -32,11 +32,11 @@
 <br />
 {% for table in (createRoomsTable, RoomsbyParticipationTable) %}
 {% if loop.index == 1 %}
-<h3 class="main-header">Created Rooms</h3>
+<h3 class="table-header">Created Rooms</h3>
 {% else %}
-<h3 class="main-header">Upcoming Participation</h3>
+<h3 class="table-header">Upcoming Participation</h3>
 {% endif %}
-<div class="table-responsive" style="margin-left: 15%; margin-right: 15%;">
+<div class="table-responsive">
   <table class="table table-bordered border-success table-hover" style="vertical-align: middle">
     <thead>
       <tr>
@@ -60,7 +60,7 @@
         <td>{{ element["description"] }}</td>
         <td><a class="link-dark" href="{{ element['meeting_link'] }}" </a>{{ element['meeting_link'] }}</td>
         <td>{{ element["start_date"] }}</td>
-        <td><a class="btn btn-primary btn-md" href="/{{btn|lower}}/{{ element['_id'] }}">{{btn}}</a></td>
+        <td><a class="btn btn-primary btn-md" href="/{{ btn|lower }}/{{ element['_id'] }}">{{ btn }}</a></td>
       </tr>
       {% endfor %}
     </tbody>
