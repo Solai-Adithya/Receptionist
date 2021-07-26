@@ -1,8 +1,7 @@
 import pymongo
 from flask_login import UserMixin
+from bson.json_util import dumps
 from constants import ATLAS_ADMIN_PWD
-
-# from db import get_db
 
 connectionURL = (
     "mongodb+srv://adhiAtlasAdmin:%s@cluster0.cjyig.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
@@ -23,6 +22,7 @@ class User(UserMixin):
         self.email = email
         self.profile_pic = profile_pic
 
+    #Fetch user using id
     @staticmethod
     def get(user_id):
         user = UsersCollection.find_one({"userID": user_id})
@@ -37,6 +37,7 @@ class User(UserMixin):
         )
         return user
 
+    #Create a new user
     @staticmethod
     def create(id_, name, first_name, email, profile_pic):
         UsersCollection.insert_one(
@@ -51,46 +52,57 @@ class User(UserMixin):
 
 
 class Rooms:
+    #Fetch room details using room ID
     @staticmethod
     def getRoomByID(room_id):
         room = RoomsCollection.find_one({"_id": room_id})
         if not room:
             return None
-        print(room)
-        return room
+        return dict(room)
 
+    #Fetch all rooms created by a user
     @staticmethod
     def getRoomsByCreator(email):
         rooms = RoomsCollection.find({"creator": email})
         if not rooms:
             return None
-        print(rooms)  # should be list of rooms, not checked for errors
-        return rooms
+        return list(rooms)
 
-    @staticmethod
-    def getRoomsByParticipant(email):
-        rooms = RoomsCollection.find({"email": email})
-        if not rooms:
-            return None
-        print(rooms)  # should be list of rooms, not checked for errors
-        return rooms
-
+    #Create a new room
     @staticmethod
     def createRoom(roomDetails):
         RoomsCollection.insert_one(roomDetails)
 
 
 class Participants:
+    #List of rooms where the user is a participant
+    #TODO: Add a method to fetch rooms where user is a participant after the present date
+    @staticmethod
+    def getRoomsByParticipant(email):
+        rooms = ParticipantsCollection.find({"email": email})
+        if not rooms:
+            return None
+        rooms = list(rooms)
+        for i in range(len(rooms)):
+            room = rooms[i]
+            roomDetails = Rooms.getRoomByID(room["roomID"])
+            if(roomDetails == None): #Room ID is present in the participants collection but not in the rooms collection
+                return "Database Mismatch"
+            rooms[i].update(roomDetails)
+        rooms = sorted(rooms, key=lambda k: k["startTime"])
+        return rooms
+
+    #List of participants in a room
     @staticmethod
     def getParticipantsByRoom(room_id):
         participants = ParticipantsCollection.find({"roomID": room_id})
         if not participants:
             return None
-        print(
-            participants
-        )  # should be list of participants, not checked for errors
+        participants = list(participants)
+        participants = sorted(participants, key=lambda k: k["queuePosition"])
         return participants
 
+    #Add participants to a room
     @staticmethod
     def addParticipants(room_id, emails):
         documents = []
