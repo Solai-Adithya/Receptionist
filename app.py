@@ -143,10 +143,8 @@ def load_user(user_id):
 @app.route("/manage/<roomID>/")
 @login_required
 def manage(roomID):
-    print("Participants for given roomID are:",participants.getParticipantsByRoom(roomID))
-    print("current user email is:", current_user.email)
-    print("Rooms for given Participant are:", participants.getRoomsByParticipant(current_user.email))
-    return render_template("manage.html", roomID=roomID)
+    participantsInRoom = participants.getParticipantsByRoom(roomID)
+    return render_template("manage.html", roomID=roomID, participants=participantsInRoom)
 
 
 # Login
@@ -190,7 +188,6 @@ def callback():
     # result = result + "<p>token_response: " + token_response.text + "</p>"
     userinfo_data = userinfo_response.json()
     if userinfo_data.get("email_verified") is not None:
-        print("LOOKUP HERE:", userinfo_data)
         unique_id = userinfo_data["sub"]
         users_email = userinfo_data["email"]
         picture = userinfo_data["picture"]
