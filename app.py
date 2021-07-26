@@ -49,12 +49,14 @@ def get_google_provider_cfg():
 @app.route("/")
 def home():
     if current_user.is_authenticated:
-        allRooms = Rooms.getRoomsByCreator(
+        createdRooms = rooms.getRoomsByCreator(current_user.email)
+        RoomsbyParticipation = participants.getRoomsByParticipant(
             current_user.email
-        )  # TODO: get rooms also as participant
+        )
         return render_template(
             "upcoming.html",
-            table=allRooms,
+            createRoomsTable=createdRooms,
+            RoomsbyParticipationTable=RoomsbyParticipation,
             user_name=current_user.name,
             user_email=current_user.email,
             user_profile_pic=current_user.profile_pic,
@@ -140,17 +142,9 @@ def load_user(user_id):
 @login_required
 def manage(roomID):
     participantsofRoom = participants.getParticipantsByRoom(roomID)
-    print("Participants for given roomID are:", participantsofRoom)
-    pprint(list(participantsofRoom))
-    print("current user email is:", current_user.email)
-    RoomsbyParicipation = participants.getRoomsByParticipant(
+    RoomsbyParticipation = participants.getRoomsByParticipant(
         "b19268@students.iitmandi.ac.in"  # DEBUG
     )
-    print(
-        "Rooms for given Participant are:",
-        RoomsbyParicipation,
-    )
-    pprint(list(RoomsbyParicipation))
     return render_template("manage.html", roomID=roomID)
 
 
