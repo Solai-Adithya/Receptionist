@@ -143,6 +143,9 @@ def load_user(user_id):
 @app.route("/manage/<roomID>/")
 @login_required
 def manage(roomID):
+    print("Participants for given roomID are:",participants.getParticipantsByRoom(roomID))
+    print("current user email is:", current_user.email)
+    print("Rooms for given Participant are:", participants.getRoomsByParticipant(current_user.email))
     return render_template("manage.html", roomID=roomID)
 
 
