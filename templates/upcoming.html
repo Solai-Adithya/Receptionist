@@ -46,10 +46,10 @@
       {% for element in table %}
       <tr>
         <td>{{ loop.index }}</td>
-        <td>{{element["description"]}}</td>
-        <td><a class="link-primary" href="{{element['meeting_link']}}" </a>{{element['meeting_link']}}</td>
-        <td>{{element["start_date"]}}</td>
-        <td><a class="btn btn-primary btn-md" href="/join/{{element['_id']}}">Join</a></td>
+        <td>{{ element["description"] }}</td>
+        <td><a class="link-dark" href="{{ element['meeting_link'] }}" </a>{{ element['meeting_link'] }}</td>
+        <td>{{ element["start_date"] }}</td>
+        <td><a class="btn btn-primary btn-md" href="/join/{{ element['_id'] }}">Join</a></td>
         <!--# TODO: add join link</telement>-->
       </tr>
       {% endfor %}

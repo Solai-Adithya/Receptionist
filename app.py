@@ -5,14 +5,9 @@ from datetime import datetime
 from io import StringIO
 
 import requests
-from flask import (
-    Flask,
-    redirect,
-    render_template,
-    request,
-    url_for,
-    abort as flask_abort,
-)
+from flask import Flask
+from flask import abort as flask_abort
+from flask import redirect, render_template, request, url_for
 from flask_login import (
     LoginManager,
     current_user,
@@ -20,25 +15,25 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit, join_room, leave_room, send
 from oauthlib.oauth2 import WebApplicationClient
 
 from constants import GOOGLE_CLIENT_ID, GOOGLE_DISCOVERY_URL, GOOGLE_SECRET
 from db import Participants, Rooms, User
-from functions import generateRoomID
-
-rooms = Rooms()
-participants = Participants()
+from functions import generateRoomID, authenticated_only
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 os.environ["FLASK_ENV"] = "development"
 
+rooms = Rooms()
+participants = Participants()
+
 app = Flask(__name__)
 
 app.config["SECRET_KEY"] = "secret!"
-app.debug = True
+app.debug = False
 
-socketio = SocketIO(app)
+socketio = SocketIO(app, logger=True, engineio_logger=True)
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 login_manager = LoginManager()
@@ -218,6 +213,32 @@ def logout():
     return redirect("/")
 
 
+@socketio.on("join")
+@authenticated_only
+def on_join(data):
+    username = data["username"]
+    room = data["room"]
+    join_room(room)
+    send(username + " has entered the room.", to=room)
+
+
+@socketio.on("leave")
+def on_leave(data):
+    username = data["username"]
+    room = data["room"]
+    leave_room(room)
+    send(username + " has left the room.", to=room)
+
+
+@socketio.on("connect")
+def test_connect(auth):
+    emit("my response", {"data": "Connected"})
+
+
+@socketio.on("disconnect")
+def test_disconnect():
+    print("Client disconnected")
+
+
 if __name__ == "__main__":
-    app.run(host="localhost", port=5000)
-    socketio.run(app)
+    socketio.run(app, host="localhost", port=5000)
