@@ -30,7 +30,8 @@ Enjoy
 ## Database
 
 - There are three MongoDB collections.
-- ![Screenshot from 2021-07-28 17-17-19](https://user-images.githubusercontent.com/54475046/127317371-449393b2-28df-4a33-b7f8-c28347d6e3e2.png)
+
+![Screenshot from 2021-07-28 17-17-19](https://user-images.githubusercontent.com/54475046/127317371-449393b2-28df-4a33-b7f8-c28347d6e3e2.png)
 
 
 ## License
