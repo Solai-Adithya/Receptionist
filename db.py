@@ -54,8 +54,10 @@ class User(UserMixin):
 class Rooms:
     # Fetch room details using room ID
     @staticmethod
-    def getRoomByID(room_id):
-        room = RoomsCollection.find_one({"_id": room_id})
+    def getRoomByID(room_id, projection=None):
+        room = RoomsCollection.find_one(
+            {"_id": room_id}, projection=projection
+        )
         return room
 
     # Fetch all rooms created by a user
@@ -142,3 +144,9 @@ class Participants:
             )
             queuePosition += 100
         ParticipantsCollection.insert_many(documents)
+
+    @staticmethod
+    def ifParticipantInRoom(room_id, email):
+        return ParticipantsCollection.find_one(
+            {"roomID": room_id, "email": email}
+        )

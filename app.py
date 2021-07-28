@@ -3,7 +3,6 @@ import os
 from csv import reader
 from datetime import datetime
 from io import StringIO
-from pprint import pprint
 
 import requests
 from flask import Flask
@@ -141,11 +140,32 @@ def load_user(user_id):
 @app.route("/manage/<roomID>/")
 @login_required
 def manage(roomID):
-    participantsofRoom = participants.getParticipantsByRoom(roomID)
-    RoomsbyParticipation = participants.getRoomsByParticipant(
-        "b19268@students.iitmandi.ac.in"  # DEBUG
-    )
-    return render_template("manage.html", roomID=roomID)
+    """
+    Allowed only if user created the room.
+    """
+    roomDetail = rooms.getRoomByID(roomID, projection=["creator"])
+    if roomDetail is not None and roomDetail["creator"] == current_user.email:
+        return render_template("manage.html", roomID=roomID)
+    else:
+        flask_abort(403)
+    # TODO
+    # socketio.server.rooms()
+
+
+@app.route("/join/<roomID>/")
+@login_required
+def join_room(roomID):
+    """
+    Allowed only if user is a participant.
+    """
+    if (
+        participants.ifParticipantInRoom(roomID, current_user.email)
+        is not None
+    ):
+        return render_template("participant.html", room_id=roomID)
+    else:
+        flask_abort(403)
+    # TODO
 
 
 # Login
@@ -222,6 +242,9 @@ def logout():
 @socketio.on("join")
 @authenticated_only
 def on_join(data):
+    """
+    Sent after joining a room.
+    """
     username = data["username"]
     room = data["room"]
     join_room(room)
@@ -230,20 +253,13 @@ def on_join(data):
 
 @socketio.on("leave")
 def on_leave(data):
+    """
+    Sent after leaving a room.
+    """
     username = data["username"]
     room = data["room"]
     leave_room(room)
     send(username + " has left the room.", to=room)
-
-
-@socketio.on("connect")
-def test_connect(auth):
-    emit("my response", {"data": "Connected"})
-
-
-@socketio.on("disconnect")
-def test_disconnect():
-    print("Client disconnected")
 
 
 if __name__ == "__main__":
