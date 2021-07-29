@@ -3,6 +3,7 @@ import os
 from csv import reader
 from datetime import datetime
 from io import StringIO
+import logging
 
 import requests
 from flask import Flask
@@ -33,7 +34,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 app.debug = False
 
-socketio = SocketIO(app, logger=True, engineio_logger=True)
+socketio = SocketIO(app, logger=False, engineio_logger=False)
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 login_manager = LoginManager()
@@ -148,13 +149,11 @@ def manage(roomID):
         return render_template("manage.html", roomID=roomID)
     else:
         flask_abort(403)
-    # TODO
-    # socketio.server.rooms()
 
 
 @app.route("/join/<roomID>/")
 @login_required
-def join_room(roomID):
+def flask_join_room(roomID):
     """
     Allowed only if user is a participant.
     """
@@ -162,6 +161,12 @@ def join_room(roomID):
         participants.ifParticipantInRoom(roomID, current_user.email)
         is not None
     ):
+        emit(
+            "joined",
+            {"data": f"{current_user.email} has joined", "roomID": roomID},
+            to=roomID,
+            namespace="/p_room",
+        )
         return render_template("participant.html", room_id=roomID)
     else:
         flask_abort(403)
@@ -239,30 +244,26 @@ def logout():
     return redirect("/")
 
 
-@socketio.on("join")
-@authenticated_only
-def on_join(data):
-    """
-    Sent after joining a room.
-    """
-    username = data["username"]
-    room = data["room"]
-    join_room(room)
-    send(username + " has entered the room.", to=room)
+@socketio.on("joined", namespace="/p_room")
+def io_to_join_room(data):
+    print(f"{current_user.email} joins {data}")
+    join_room(data.roomID, namespace="/p_room")
 
 
-@socketio.on("leave")
+@socketio.on("join", namespace="/p_room")
+def io_join_room(data=None):
+    print(f"{current_user.email} used join_room {data}")
+
+
+@socketio.on("disconnect")
 def on_leave(data):
     """
     Sent after leaving a room.
     """
-    username = data["username"]
-    room = data["room"]
-    leave_room(room)
-    send(username + " has left the room.", to=room)
+    print(f"{current_user.email} left {data}")
 
 
 if __name__ == "__main__":
     socketio.run(
-        app, host="localhost", port=5000, log_output=True, use_reloader=True
+        app, host="localhost", port=5000, log_output=False, use_reloader=True
     )
