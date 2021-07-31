@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 {% block any_head %}
 <style>
-  .main-header {
+  .table-header {
     color: rgb(233, 22, 127);
-    padding-top: 20px;
+    padding: 40px auto;
   }
 
   .main-queue {
-    padding-top: 100px;
+    padding-top: 40px;
   }
 </style>
 {% endblock %}
@@ -25,35 +25,43 @@
       <li><a class="dropdown-item" href="/create/add">Add participants using email</a></li>
     </ul>
   </div>
-  <div>
-    <a class="btn btn-light btn-lg" href="/join">Join a Room</a>
-  </div>
 </div>
 <br />
-<h3 class="main-header">Upcoming</h3>
-<div class="container">
-  <table class="table table-bordered border-success table-hover" style="vertical-align: middle;">
+{% for table in (createRoomsTable, RoomsbyParticipationTable) %}
+{% if loop.index == 1 %}
+<h3 class="table-header">Created Rooms</h3>
+{% else %}
+<h3 class="table-header">Upcoming Participation</h3>
+{% endif %}
+<div class="table-responsive">
+  <table class="table table-bordered border-success table-hover" style="vertical-align: middle">
     <thead>
       <tr>
         <th class="col-1">#</th>
         <th class="col-2">Title</th>
         <th class="col-3">Link</th>
         <th class="col-2">Date&Time</th>
-        <th class="col-1">Join</th>
+        <th class="col-1">Join/Manage</th>
       </tr>
     </thead>
     <tbody>
+      {% set btn = "Manage" %}
+      {% set outerloop = loop.index %}
       {% for element in table %}
+      {% if outerloop == 2 %}
+      {% set btn = "Join" %}
+      {% set element = element.roomID %}
+      {% endif %}
       <tr>
         <td>{{ loop.index }}</td>
-        <td>{{element["description"]}}</td>
-        <td><a class="link-primary" href="{{element['meeting_link']}}" </a>{{element['meeting_link']}}</td>
-        <td>{{element["start_date"]}}</td>
-        <td><a class="btn btn-primary btn-md" href="/join/{{element['_id']}}">Join</a></td>
-        <!--# TODO: add join link</telement>-->
+        <td>{{ element["description"] }}</td>
+        <td><a class="link-dark" href="{{ element['meeting_link'] }}" </a>{{ element['meeting_link'] }}</td>
+        <td>{{ element["start_date"] }}</td>
+        <td><a class="btn btn-primary btn-md" href="/{{ btn|lower }}/{{ element['_id'] }}">{{ btn }}</a></td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+{% endfor %}
 {% endblock %}

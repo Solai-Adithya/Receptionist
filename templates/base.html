@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" class="h-100">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+
     <title>Receptionist</title>
     <!-- CSS only -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -12,6 +13,14 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" />
     {% block any_head %}{% endblock %}
     <style>
+        .body-container {
+            height: 100vh;
+        }
+
+        .body {
+            position: relative;
+        }
+
         .header {
             background-color: #26d0c9;
             color: #fff;
@@ -26,7 +35,6 @@
 
         .main {
             background-color: #33ffa2;
-            height: 100%;
         }
 
         .footer {
@@ -38,10 +46,10 @@
     </style>
 </head>
 
-<body class="d-flex h-100 text-center">
-    <div class="cover-container d-flex w-100 h-100 p-0 mx-auto flex-column">
+<body class="h-100 w-100 text-center">
+    <div class="body-container d-flex justify-content-between mx-auto flex-column">
         {% block navbar %} {% include 'navbar.html' %} {% endblock %}
-        <div class="main container-fluid">
+        <div class="main container-fluid align-self-center flex-grow-1">
             {% block main_content %}{% endblock %}
         </div>
         {% block footer %} {% include 'footer.html' %} {% endblock %}
@@ -50,6 +58,10 @@
         <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
             crossorigin="anonymous"></script>
+        <script defer src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"
+            integrity="sha512-eVL5Lb9al9FzgR63gDs1MxcDS2wFu3loYAgjIH0+Hg38tCS8Ag62dwKyH+wzDb+QauDpEZjXbMn11blw8cbTJQ=="
+            crossorigin="anonymous"></script>
+        <script defer src="/static/client.js"></script>
     </div>
 </body>
 
