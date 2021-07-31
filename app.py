@@ -3,7 +3,7 @@ import os
 from csv import reader
 from datetime import datetime
 from io import StringIO
-import logging
+from curtsies.fmtfuncs import red, bold, green, on_blue, yellow
 
 import requests
 from flask import Flask
@@ -16,12 +16,12 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from flask_socketio import SocketIO, emit, join_room, leave_room, send
+from flask_socketio import SocketIO, emit, join_room
 from oauthlib.oauth2 import WebApplicationClient
 
 from constants import GOOGLE_CLIENT_ID, GOOGLE_DISCOVERY_URL, GOOGLE_SECRET
 from db import Participants, Rooms, User
-from functions import authenticated_only, generateRoomID
+from functions import generateRoomID
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 os.environ["FLASK_ENV"] = "development"
@@ -34,7 +34,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 app.debug = False
 
-socketio = SocketIO(app, logger=False, engineio_logger=False)
+socketio = SocketIO(app, logger=False, engineio_logger=True)
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 login_manager = LoginManager()
@@ -165,7 +165,7 @@ def flask_join_room(roomID):
             "joined",
             {"data": f"{current_user.email} has joined", "roomID": roomID},
             to=roomID,
-            namespace="/p_room",
+            namespace="/",
         )
         return render_template("participant.html", room_id=roomID)
     else:
@@ -244,23 +244,23 @@ def logout():
     return redirect("/")
 
 
-@socketio.on("joined", namespace="/p_room")
+@socketio.on("joined")
 def io_to_join_room(data):
-    print(f"{current_user.email} joins {data}")
-    join_room(data.roomID, namespace="/p_room")
+    print(yellow(f"{current_user.email} joins {data}"))
+    socketio.join_room(data.roomID)
 
 
-@socketio.on("join", namespace="/p_room")
+@socketio.on("join")
 def io_join_room(data=None):
-    print(f"{current_user.email} used join_room {data}")
+    print(yellow(f"{current_user.email} used join_room {data}"))
 
 
 @socketio.on("disconnect")
-def on_leave(data):
+def on_leave(data=None):
     """
     Sent after leaving a room.
     """
-    print(f"{current_user.email} left {data}")
+    print(yellow(f"{current_user.email} left {data}"))
 
 
 if __name__ == "__main__":
