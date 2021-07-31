@@ -3,16 +3,12 @@ import os
 from csv import reader
 from datetime import datetime
 from io import StringIO
+from curtsies.fmtfuncs import red, bold, green, on_blue, yellow
 
 import requests
-from flask import (
-    Flask,
-    redirect,
-    render_template,
-    request,
-    url_for,
-    abort as flask_abort,
-)
+from flask import Flask
+from flask import abort as flask_abort
+from flask import redirect, render_template, request, url_for
 from flask_login import (
     LoginManager,
     current_user,
@@ -20,25 +16,25 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit, join_room
 from oauthlib.oauth2 import WebApplicationClient
 
 from constants import GOOGLE_CLIENT_ID, GOOGLE_DISCOVERY_URL, GOOGLE_SECRET
 from db import Participants, Rooms, User
 from functions import generateRoomID
 
-rooms = Rooms()
-participants = Participants()
-
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 os.environ["FLASK_ENV"] = "development"
+
+rooms = Rooms()
+participants = Participants()
 
 app = Flask(__name__)
 
 app.config["SECRET_KEY"] = "secret!"
-app.debug = True
+app.debug = False
 
-socketio = SocketIO(app)
+socketio = SocketIO(app, logger=False, engineio_logger=True)
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 login_manager = LoginManager()
@@ -53,12 +49,14 @@ def get_google_provider_cfg():
 @app.route("/")
 def home():
     if current_user.is_authenticated:
-        allRooms = Rooms.getRoomsByCreator(
+        createdRooms = rooms.getRoomsByCreator(current_user.email)
+        RoomsbyParticipation = participants.getRoomsByParticipant(
             current_user.email
-        )  # TODO: get rooms also as participant
+        )
         return render_template(
             "upcoming.html",
-            table=allRooms,
+            createRoomsTable=createdRooms,
+            RoomsbyParticipationTable=RoomsbyParticipation,
             user_name=current_user.name,
             user_email=current_user.email,
             user_profile_pic=current_user.profile_pic,
@@ -143,8 +141,36 @@ def load_user(user_id):
 @app.route("/manage/<roomID>/")
 @login_required
 def manage(roomID):
-    participantsInRoom = participants.getParticipantsByRoom(roomID)
-    return render_template("manage.html", roomID=roomID, participants=participantsInRoom)
+    """
+    Allowed only if user created the room.
+    """
+    roomDetail = rooms.getRoomByID(roomID, projection=["creator"])
+    if roomDetail is not None and roomDetail["creator"] == current_user.email:
+        return render_template("manage.html", roomID=roomID)
+    else:
+        flask_abort(403)
+
+
+@app.route("/join/<roomID>/")
+@login_required
+def flask_join_room(roomID):
+    """
+    Allowed only if user is a participant.
+    """
+    if (
+        participants.ifParticipantInRoom(roomID, current_user.email)
+        is not None
+    ):
+        emit(
+            "to-join",
+            {"data": f"{current_user.email} has joined", "roomID": roomID},
+            to=roomID,
+            namespace="/",
+        )
+        return render_template("participant.html", room_id=roomID)
+    else:
+        flask_abort(403)
+    # TODO
 
 
 # Login
@@ -218,6 +244,26 @@ def logout():
     return redirect("/")
 
 
+@socketio.on("to-join")
+def io_to_join_room(data):
+    print(yellow(f"{current_user.email} joins {data}"))
+    socketio.join_room(data.roomID)
+
+
+@socketio.on("connect")
+def io_join_room(data=None):
+    print(yellow(f"{current_user.email} used join_room {data}"))
+
+
+@socketio.on("disconnect")
+def on_leave(data=None):
+    """
+    Sent after leaving a room.
+    """
+    print(yellow(f"{current_user.email} left {data}"))
+
+
 if __name__ == "__main__":
-    app.run(host="localhost", port=5000)
-    socketio.run(app)
+    socketio.run(
+        app, host="localhost", port=5000, log_output=False, use_reloader=True
+    )
