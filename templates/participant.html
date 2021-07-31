@@ -1,31 +1,4 @@
 {% extends 'base.html' %}
 {% block main_content %}
-<div class="row">
-  <div class="col-8">
-    <div class="course-queue">
-      <h4>Course Name</h4>
-    </div>
-    <br />
-    <div class="schedule-time">
-      "Your scheduled time for your viva is __:__"
-    </div>
-  </div>
-  <div class="col">
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">Announcement</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <!-- <th scope="row">1</th> -->
-          <td>Your meet is scheduled that day</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-<br /><br />
-<div class="meet-link">Meet link:</div>
+<h1>Successful => {{room_id}} !</h1>
 {% endblock %}
