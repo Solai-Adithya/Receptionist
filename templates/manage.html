@@ -1,269 +1,60 @@
-<!DOCTYPE html>
-<html lang="en" class="h-100">
-  <head>
-    <meta charset="utf-8" />
-    <title>Receptionist</title>
-    <!-- <link rel="stylesheet" href="stylesheet.css"> -->
-    <!-- CSS only -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-      crossorigin="anonymous"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css"
-    />
-    <style>
-      .header {
-        background-color: #26d0c9;
-        color: #fff;
-        height: 90px;
-      }
-      .header-logo {
-        float: left;
-        font-size: 36px;
-        padding: 20px 40px;
-      }
-      .main {
-        background-color: #33ffa2;
-        /* padding: 100px 380px;*/
-        height: 1000px;
-      }
-      .main-header {
-        color: rgb(233, 22, 127);
-        font-size: 25px;
-        padding-top: 20px;
-      }
-      .main-queue {
-        padding-top: 100px;
-      }
-
-      .footer {
-        background-color: #90a5e0;
-        color: #fff;
-        height: 20px;
-        padding: 40px;
-        justify-content: right;
-      }
-    </style>
-  </head>
-
-  <body class="d-flex h-100 text-center">
-    <div class="cover-container d-flex w-100 h-100 p-0 mx-auto flex-column">
-      <nav class="navbar mb-auto navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-          <a class="navbar-brand" href="#">Receptionist</a>
-          <button
-            class="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav mb-2 mb-lg-0">
-              <li class="nav-item">
-                <a class="nav-link" href="#">Sign Out</a>
-              </li>
-            </ul>
+{% extends 'base.html' %}
+{% block main_content %}
+<div class="table-responsive">
+  <table class="table table-striped table-dark text-white table-hover">
+    <thead>
+      <tr>
+        <th>Profile Picture</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Status</th>
+        <th>Notify</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          1
+        </td>
+        <td>
+          <div class="d-flex align-items-center">
+            <img class="rounded-circle" src="https://i.imgur.com/C4egmYM.jpg" width="70" />
           </div>
-        </div>
-      </nav>
-      <div class="main">
-        <div class="container mt-5">
-          <div class="table-responsive">
-            <table
-              class="table table-striped table-dark text-white table-hover"
-            >
-              <thead>
-                <tr>
-                  <!-- <th>Profile Picture</th>
-                  <th colspan="2">Name</th>
-                  <th>Email</th>
-                  <th>Status</th>
-                  <th>Notify</th> -->
-                  <!-- <th></th> -->
-                  <th></th>
-                  <th></th>
-                  <th></th>
-                  <th></th>
-                  <th></th>
-                  <th></th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>1</td>
-                  <td>
-                    <div class="d-flex align-items-center">
-                      <img
-                        class="rounded-circle"
-                        src="https://i.imgur.com/C4egmYM.jpg"
-                        width="70"
-                      />
-                    </div>
-                  </td>
-                  <td colspan="2">
-                    <h4>Name1 Here</h4>
-                    <br />
-                    <h5>abc@gmail.com</h5>
-                  </td>
+        </td>
+        <td>
+          <h4>Name1 Here</h4>
+          <br />
+          <h5>abc@gmail.com</h5>
+        </td>
+        <td>
+          <div class="dropdown show">
+            <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+              data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Status
 
-                  <!-- <td>abc@gmail.com<br /></td> -->
-                  <td>
-                    <div class="dropdown show">
-                      <a
-                        class="btn btn-secondary dropdown-toggle"
-                        href="#"
-                        role="button"
-                        id="dropdownMenuLink"
-                        data-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                      >
-                        Status
-                      </a>
-
-                      <div
-                        class="dropdown-menu"
-                        aria-labelledby="dropdownMenuLink"
-                      >
-                        <a class="dropdown-item" href="#">Default Open</a>
-                        <a class="dropdown-item" href="#">Done</a>
-                        <a class="dropdown-item" href="#">Cancelled</a>
-                        <a class="dropdown-item" href="#">Postponed</a>
-                      </div>
-                    </div>
-                  </td>
-                  <!-- <td class="font-weight-bold">Published</td> -->
-                  <td>
-                    <div class="dropdown show">
-                      <a
-                        class="btn btn-secondary dropdown-toggle"
-                        href="#"
-                        role="button"
-                        id="dropdownMenuLink"
-                        data-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                      >
-                        Notify
-                      </a>
-
-                      <div
-                        class="dropdown-menu"
-                        aria-labelledby="dropdownMenuLink"
-                      >
-                        <a class="dropdown-item" href="#">Notify by email</a>
-                        <a class="dropdown-item" href="#">Notify by website</a>
-                      </div>
-                    </div>
-                  </td>
-                  <td><i class="fa fa-external-link external-link"></i></td>
-                </tr>
-              </tbody>
-            </table>
-            <table
-              class="table table-striped table-dark text-white table-hover"
-            >
-              <tbody>
-                <tr>
-                  <td>2</td>
-                  <td>
-                    <div class="d-flex align-items-center">
-                      <img
-                        class="rounded-circle"
-                        src="https://i.imgur.com/C4egmYM.jpg"
-                        width="70"
-                      />
-                    </div>
-                  </td>
-                  <td colspan="2">
-                    <h4>Name2 Here</h4>
-                    <br />
-                    <h5>xyz@email.com</h5>
-                  </td>
-
-                  <!-- <td>abc@gmail.com<br /></td> -->
-                  <td>
-                    <div class="dropdown show">
-                      <a
-                        class="btn btn-secondary dropdown-toggle"
-                        href="#"
-                        role="button"
-                        id="dropdownMenuLink"
-                        data-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                      >
-                        Status
-                      </a>
-
-                      <div
-                        class="dropdown-menu"
-                        aria-labelledby="dropdownMenuLink"
-                      >
-                        <a class="dropdown-item" href="#">Default Open</a>
-                        <a class="dropdown-item" href="#">Done</a>
-                        <a class="dropdown-item" href="#">Cancelled</a>
-                        <a class="dropdown-item" href="#">Postponed</a>
-                      </div>
-                    </div>
-                  </td>
-                  <!-- <td class="font-weight-bold">Published</td> -->
-                  <td>
-                    <div class="dropdown show">
-                      <a
-                        class="btn btn-secondary dropdown-toggle"
-                        href="#"
-                        role="button"
-                        id="dropdownMenuLink"
-                        data-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                      >
-                        Notify
-                      </a>
-
-                      <div
-                        class="dropdown-menu"
-                        aria-labelledby="dropdownMenuLink"
-                      >
-                        <a class="dropdown-item" href="#">Notify by email</a>
-                        <a class="dropdown-item" href="#">Notify by website</a>
-                      </div>
-                    </div>
-                  </td>
-                  <td><i class="fa fa-external-link external-link"></i></td>
-                </tr>
-              </tbody>
-            </table>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                <a class="dropdown-item" href="#">Default Open</a>
+                <a class="dropdown-item" href="#">Done</a>
+                <a class="dropdown-item" href="#">Cancelled</a>
+                <a class="dropdown-item" href="#">Postponed</a>
+              </div>
           </div>
-        </div>
-      </div>
-      <div class="footer">
-        <div class="mt-auto">
-          <p>
-            <i class="bi bi-github"></i>
-            <a href="https://github.com/Solai-Adithya/Receptionist">
-              Github link
+        </td>
+        <td>
+          <div class="dropdown show">
+            <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+              data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Notify
             </a>
-          </p>
-        </div>
-      </div>
-      <!-- JavaScript Bundle with Popper -->
-      <script
-        src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-        crossorigin="anonymous"
-      ></script>
-    </div>
-  </body>
-</html>
+
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+              <a class="dropdown-item" href="#">Notify by email</a>
+              <a class="dropdown-item" href="#">Notify by website</a>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% endblock %}
