@@ -1,5 +1,10 @@
 const socket = io("http://" + document.domain + ":5000");
+participantRoomNameSpace = io("/p_room");
 
-socket.on("message", (text) => {
-    console.log(text);
+participantRoomNameSpace.on("joined", (data) => {
+    alert(data);
+});
+
+participantRoomNameSpace.on("join", (data) => {
+    alert(data);
 });
