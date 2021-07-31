@@ -1,9 +1,9 @@
 const socket = io("http://" + document.domain + ":5000");
 
-socket.on("joined", (data) => {
-    alert(data);
-});
+// socket.on("to-join", (data) => {
+//     alert(data);
+// });
 
-socket.on("join", (data) => {
+socket.on("connect", (data) => {
     alert(data);
 });

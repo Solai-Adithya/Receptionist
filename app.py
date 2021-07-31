@@ -162,7 +162,7 @@ def flask_join_room(roomID):
         is not None
     ):
         emit(
-            "joined",
+            "to-join",
             {"data": f"{current_user.email} has joined", "roomID": roomID},
             to=roomID,
             namespace="/",
@@ -244,13 +244,13 @@ def logout():
     return redirect("/")
 
 
-@socketio.on("joined")
+@socketio.on("to-join")
 def io_to_join_room(data):
     print(yellow(f"{current_user.email} joins {data}"))
     socketio.join_room(data.roomID)
 
 
-@socketio.on("join")
+@socketio.on("connect")
 def io_join_room(data=None):
     print(yellow(f"{current_user.email} used join_room {data}"))
 
