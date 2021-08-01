@@ -77,7 +77,24 @@ class Rooms:
 
 
 class Participants:
-
+    @staticmethod
+    def getJoiningDetails(room_id, email):
+        roomDetails = dict(RoomsCollection.find_one(
+            {"_id": room_id} 
+        ))
+        print("ROOM details:", roomDetails)
+        interviewerDetails = dict(UsersCollection.find_one(
+            {"email": roomDetails["creator"]}, {"name":1, "profile_pic":1}
+        ))
+        participantDetails = dict(ParticipantsCollection.find_one(
+            {"email": email}, {"windowLowerBound":1, "windowUpperBound":1, "status":1, "queuePosition":1}
+        ))
+        participantDetails["interviewer_name"] = interviewerDetails["name"]
+        participantDetails["interviewer_profile_pic"] = interviewerDetails["profile_pic"]
+        participantDetails.update(roomDetails)
+        print(participantDetails)
+        return participantDetails
+         
     # List of rooms where the user is a participant
     @staticmethod
     def getRoomsByParticipant(email):
@@ -128,7 +145,7 @@ class Participants:
     @staticmethod
     def addParticipants(room_id, emails):
         documents = []
-        queuePosition = 100
+        queuePosition = 1
         for email in emails:
             documents.append(
                 {
@@ -142,7 +159,7 @@ class Participants:
                     "notifiedByEmail": False,
                 }
             )
-            queuePosition += 100
+            queuePosition += 1
         ParticipantsCollection.insert_many(documents)
 
     @staticmethod

@@ -3,11 +3,15 @@
 <div class="row">
   <div class="col-8">
     <div class="course-queue">
-      <h4>Course Name</h4>
+      <h4>{{name}}</h4>
+      <h4>Date: {{start_date}}</h4>
+
     </div>
     <br />
-    <div class="schedule-time">
-      "Your scheduled time for your viva is __:__"
+    <div class="queue-position">
+      You are {{queuePosition}}th in the queue.<br /><br />
+      <img class="rounded-circle" src={{interviewer_profile_pic}} width="70">
+      Your Interviewer is {{interviewer_name}}.
     </div>
   </div>
   <div class="col">
@@ -27,5 +31,5 @@
   </div>
 </div>
 <br /><br />
-<div class="meet-link">Meet link:</div>
+<div class="meet-link">Meet link:{{meeting_link}}</div>
 {% endblock %}

@@ -167,7 +167,8 @@ def flask_join_room(roomID):
             to=roomID,
             namespace="/",
         )
-        return render_template("participant.html", room_id=roomID)
+        joiningDetails = participants.getJoiningDetails(roomID, current_user.email)
+        return render_template("participant.html", **joiningDetails)
     else:
         flask_abort(403)
     # TODO
