@@ -171,7 +171,6 @@ def flask_join_room(roomID):
         return render_template("participant.html", **joiningDetails)
     else:
         flask_abort(403)
-    # TODO
 
 
 # Login
@@ -245,26 +244,27 @@ def logout():
     return redirect("/")
 
 
-@socketio.on("to-join")
-def io_to_join_room(data):
-    print(yellow(f"{current_user.email} joins {data}"))
-    socketio.join_room(data.roomID)
+# @socketio.on("to-join")
+# def io_to_join_room(data):
+#     print(yellow(f"{current_user.email} joins {data}"))
+#     socketio.join_room(data.roomID)
 
 
-@socketio.on("connect")
-def io_join_room(data=None):
-    print(yellow(f"{current_user.email} used join_room {data}"))
+# @socketio.on("connect")
+# def io_join_room(data=None):
+#     print(yellow(f"{current_user.email} used join_room {data}"))
 
 
-@socketio.on("disconnect")
-def on_leave(data=None):
-    """
-    Sent after leaving a room.
-    """
-    print(yellow(f"{current_user.email} left {data}"))
+# @socketio.on("disconnect")
+# def on_leave(data=None):
+#     """
+#     Sent after leaving a room.
+#     """
+#     print(yellow(f"{current_user.email} left {data}"))
 
 
 if __name__ == "__main__":
     socketio.run(
         app, host="localhost", port=5000, log_output=False, use_reloader=True
     )
+    # app.run(debug=True)

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% block main_content %}
+<link rel="stylesheet" href="../static/manage.css">
 <div class="table-responsive">
   <table class="table table-striped table-dark text-white table-hover">
     <thead>
@@ -56,5 +57,31 @@
       </tr>
     </tbody>
   </table>
+  <ol class="list-group list-group-numbered">
+    <li class="list-group-item d-flex justify-content-between align-items-start">
+      <div class="ms-2 me-auto">
+        <div class="profile">
+          <img class="rounded-circle" src="https://i.imgur.com/C4egmYM.jpg" width="70" />
+        </div>
+        <div class="fw-bold name">Name here</div>
+        <div class="email">b19268@students.iitmandi.ac.in</div>
+      </div>
+      <span class="badge bg-primary rounded-pill">14</span>
+    </li>
+    <li class="list-group-item d-flex justify-content-between align-items-start">
+      <div class="ms-2 me-auto">
+        <div class="fw-bold">Subheading</div>
+        Cras justo odio
+      </div>
+      <span class="badge bg-primary rounded-pill">14</span>
+    </li>
+    <li class="list-group-item d-flex justify-content-between align-items-start">
+      <div class="ms-2 me-auto">
+        <div class="fw-bold">Subheading</div>
+        Cras justo odio
+      </div>
+      <span class="badge bg-primary rounded-pill">14</span>
+    </li>
+  </ol>
 </div>
 {% endblock %}
