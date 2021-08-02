@@ -1,12 +1,70 @@
-.profile {
-    float:left;
-    border: 1px solid red;
+.participants {
+    width: 60%;
+    margin: 0 auto;
+}
+.name-container {
+    display: grid;
+    /* border: 1px solid black; */
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
+    gap: 0px 0px;
+    grid-auto-flow: row;
+    grid-template-areas:
+      "profile-pic name name name"
+      "profile-pic name name name"
+      "profile-pic name name name"
+      "profile-pic email email email"
+      "profile-pic email email email";
+  }
+  
+.profile-pic { 
+    grid-area: profile-pic;
+    white-space: nowrap;
+    margin-right: 5px;
 }
 
-.name {
-    border: 1px solid green;
+.imgHelper {
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+}
+img {
+    vertical-align: middle;
+}
+  
+.name { 
+    grid-area: name;
+    font-size: 1.4em;
+    font-weight: 600;
+    /* border: 1px solid green; */
+    text-align: left;
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: column;
+}
+  
+.email { 
+    grid-area: email;
+    text-align:left;
+    display: flex;
+    justify-content: flex-start;
+    align-content: center;
+    flex-direction: column;
+    /* border: 1px solid red; */
 }
 
-.email {
-    border: 1px solid blue;
+.queue-position {
+    text-align: center;
+    top:0;
+    bottom: 0;
+    margin: auto 0;
+    vertical-align: middle;
+}
+
+.status {
+    margin: 10px;
+}
+
+.notify {
+    margin: 10px;
 }
