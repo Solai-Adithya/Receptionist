@@ -1,0 +1,12 @@
+.profile {
+    float:left;
+    border: 1px solid red;
+}
+
+.name {
+    border: 1px solid green;
+}
+
+.email {
+    border: 1px solid blue;
+}
