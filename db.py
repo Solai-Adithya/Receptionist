@@ -133,11 +133,29 @@ class Participants:
     # List of participants in a room
     @staticmethod
     def getParticipantsByRoom(room_id):
-        participants = ParticipantsCollection.find(
-            {"roomID": room_id},
-            sort=[
-                ("queuePosition", pymongo.ASCENDING),
-            ],
+        participants = ParticipantsCollection.aggregate(
+            [
+                {"$match": {"roomID": room_id}},
+                {
+                    "$lookup": {
+                        "from": "Users",
+                        "localField": "email",
+                        "foreignField": "email",
+                        "as": "user",
+                    }
+                },
+                {"$unwind": "$user"},
+                {
+                    "$project": {
+                        "_id": 0,
+                        "queuePosition": 1,
+                        "user.email": "$user.email",
+                        "user.name": "$user.name",
+                        "user.profile_pic": "$user.profile_pic",
+                    }
+                },
+                {"$sort": {"queuePosition": pymongo.ASCENDING}},
+            ]
         )
         return participants
 
