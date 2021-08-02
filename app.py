@@ -3,6 +3,7 @@ import os
 from csv import reader
 from datetime import datetime
 from io import StringIO
+from pprint import pprint
 from curtsies.fmtfuncs import red, bold, green, on_blue, yellow
 
 import requests
@@ -146,7 +147,11 @@ def manage(roomID):
     """
     roomDetail = rooms.getRoomByID(roomID, projection=["creator"])
     if roomDetail is not None and roomDetail["creator"] == current_user.email:
-        return render_template("manage.html", roomID=roomID)
+        participantsbyRoom = participants.getParticipantsByRoom(roomID)
+        # pprint(list(participantsbyRoom))
+        return render_template(
+            "manage.html", roomID=roomID, table=participantsbyRoom
+        )
     else:
         flask_abort(403)
 
