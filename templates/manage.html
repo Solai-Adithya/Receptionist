@@ -1,85 +1,44 @@
 {% extends 'base.html' %}
 {% block main_content %}
-<link rel="stylesheet" href="../static/manage.css">
+{% block addl_css %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='manage.css') }}">
+{% endblock %}
 <div class="table-responsive">
-  <table class="table table-striped table-hover border-success">
-    <thead>
-      <tr>
-        <th class="col-1">#</th>
-        <th class="col-1">Profile Picture</th>
-        <th class="col-3">Data</th>
-        <th class="col-1">Status</th>
-        <th class="col-1">Notify</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for element in table %}
-      {% set user = element["user"] %}
-      <tr>
-        <td>{{ loop.index }}</td>
-        <td>
-          <img class="rounded-circle" src="{{user['profile_pic']}}" width="70" />
-        </td>
-        <td>
-          <span>Name: {{user["name"]}}</span>
-          <br />
-          <span>Email: <a href="mailto:{{user[" email"]}}">{{user["email"]}}</a></span>
-          <br />
-          <span>Queue: {{element["queuePosition"]}}</span>
-        </td>
-        <td>
-          <div class="btn-group">
-            <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown"
-              aria-expanded="false">
-              Action
-            </button>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#">Action</a></li>
-              <li><a class="dropdown-item" href="#">Another action</a></li>
-            </ul>
-          </div>
-        </td>
-        <td>
-          <div class="btn-group">
-            <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown"
-              aria-expanded="false">
-              Action
-            </button>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#">Action</a></li>
-              <li><a class="dropdown-item" href="#">Another action</a></li>
-            </ul>
-          </div>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  <ol class="list-group list-group-numbered">
+  <ol class="list-group participants">
+    {% for participant in participants %}
+      {% set user = participant["user"] %}
     <li class="list-group-item d-flex justify-content-between align-items-start">
-      <div class="ms-2 me-auto">
-        <div class="profile">
-          <img class="rounded-circle" src="https://i.imgur.com/C4egmYM.jpg" width="70" />
+      <div class="queue-position">{{participant["queuePosition"]}}</div>
+      <div class="ms-2 me-auto name-container">
+        <div class="profile-pic">
+          <span class="imgHelper"></span>
+          <img class="rounded-circle" src="{{user['profile_pic']}}" width="55" />
         </div>
-        <div class="fw-bold name">Name here</div>
-        <div class="email">b19268@students.iitmandi.ac.in</div>
+        <div class="name">{{user['name']}}</div>
+        <div class="email">{{user['email']}}</div>
       </div>
-      <span class="badge bg-primary rounded-pill">14</span>
-    </li>
-    <li class="list-group-item d-flex justify-content-between align-items-start">
-      <div class="ms-2 me-auto">
-        <div class="fw-bold">Subheading</div>
-        Cras justo odio
+      <div class="btn-group status">
+        <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown"
+          aria-expanded="false">
+          Status
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="#">Done</a></li>
+          <li><a class="dropdown-item" href="#">Cancelled</a></li>
+        </ul>
       </div>
-      <span class="badge bg-primary rounded-pill">14</span>
-    </li>
-    <li class="list-group-item d-flex justify-content-between align-items-start">
-      <div class="ms-2 me-auto">
-        <div class="fw-bold">Subheading</div>
-        Cras justo odio
+      <div class="btn-group notify">
+        <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown"
+          aria-expanded="false">
+          Notify
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="#">Notify through website</a></li>
+          <li><a class="dropdown-item" href="#">Notify through mail</a></li>
+        </ul>
       </div>
-      <span class="badge bg-primary rounded-pill">14</span>
     </li>
+    {% endfor %}
   </ol>
 </div>
 {% endblock %}

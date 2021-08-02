@@ -150,7 +150,7 @@ def manage(roomID):
         participantsbyRoom = participants.getParticipantsByRoom(roomID)
         # pprint(list(participantsbyRoom))
         return render_template(
-            "manage.html", roomID=roomID, table=participantsbyRoom
+            "manage.html", roomID=roomID, participants=participantsbyRoom
         )
     else:
         flask_abort(403)
