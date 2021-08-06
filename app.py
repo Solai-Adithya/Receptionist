@@ -164,43 +164,24 @@ def manage(roomID):
         flask_abort(403)
 
 
+@app.route("/notify", methods=["POST"])
 @app.route("/invite", methods=["POST"])
 def invite():
-    # extract room id from request
     js = request.get_json(force=True)
     room_id = js["roomID"]
     participant_email = js["email"]
-
     print(bold(blue(f"Inviting {room_id = }, {participant_email = }")))
+    # extract room id from request
     # print(participants.getParticipantsEmailsByRoom(room_id))
     if (
         participants.ifParticipantInRoom(room_id, participant_email)
         is not None
     ):
+        invite_user(room_id, participant_email)
+        # notify the next participant to be ready by email and website if online - experimental
         print(bold(blue("Yes data received.", room_id, participant_email)))
-        # notify the participant to join now by email and website if online
-        # notify the next participant to be ready by email and website if online
-        # Add invite time to the document
-
         participants.removeParticipantFromQueue(room_id, participant_email)
         participants.addInviteTimestamp(room_id, participant_email)
-
-        return {"result": "success"}
-    else:
-        return {"result": "failure"}
-
-
-@app.route("/notify", methods=["POST"])
-def notify():
-    js = request.get_json(force=True)
-    room_id = js["roomID"]
-    participant_email = js["email"]
-    print(blue(bold(f"Notifying {room_id=} {participant_email=}")))
-    if (
-        participants.ifParticipantInRoom(room_id, participant_email)
-        is not None
-    ):
-        # Notifying logic
         return {"result": "success"}
     else:
         return {"result": "failure"}
