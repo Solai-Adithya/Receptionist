@@ -157,7 +157,7 @@ class Participants:
     def getInvitedParticipantsInRoom(room_id):
         invited_participants = ParticipantsCollection.aggregate(
             [
-                {"$match": {"roomID": room_id, "queuePosition":-1}},
+                {"$match": {"roomID": room_id, "queuePosition": -1}},
                 {
                     "$lookup": {
                         "from": "Users",
@@ -178,14 +178,14 @@ class Participants:
                 {"$sort": {"queuePosition": pymongo.ASCENDING}},
             ]
         )
-        #Additionally sort by invite timestamp later
+        # Additionally sort by invite timestamp later
         return list(invited_participants)
 
     @staticmethod
     def getUnInvitedParticipantsInRoom(room_id):
         uninvited_participants = ParticipantsCollection.aggregate(
             [
-                {"$match": {"roomID": room_id, "queuePosition":{'$gt': 0}}},
+                {"$match": {"roomID": room_id, "queuePosition": {"$gt": 0}}},
                 {
                     "$lookup": {
                         "from": "Users",
@@ -271,6 +271,9 @@ class Participants:
 
     @staticmethod
     def ifParticipantInRoom(room_id, email):
+        """
+        Checks if participant is in the room.
+        """
         return ParticipantsCollection.find_one(
             {"roomID": room_id, "email": email}
         )
@@ -279,7 +282,9 @@ class Participants:
     def removeParticipantFromQueue(room_id, email):
         present_queue_position = ParticipantsCollection.find(
             {"roomID": room_id, "email": email}, {"queuePosition": 1}
-        )[0]["queuePosition"]
+        )
+
+        present_queue_position = present_queue_position[0]["queuePosition"]
 
         if present_queue_position != -1:
             ParticipantsCollection.update_many(

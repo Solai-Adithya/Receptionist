@@ -35,7 +35,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 app.debug = False
 
-socketio = SocketIO(app, logger=False, engineio_logger=True)
+socketio = SocketIO(app, logger=False, engineio_logger=False)
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 login_manager = LoginManager()
@@ -54,6 +54,7 @@ def home():
         RoomsbyParticipation = participants.getRoomsByParticipant(
             current_user.email
         )
+
         return render_template(
             "upcoming.html",
             createRoomsTable=createdRooms,
@@ -147,11 +148,17 @@ def manage(roomID):
     """
     roomDetail = rooms.getRoomByID(roomID, projection=["creator"])
     if roomDetail is not None and roomDetail["creator"] == current_user.email:
-        invitedPariticipants = participants.getInvitedParticipantsInRoom(roomID)
-        uninvitedParticipants = participants.getUnInvitedParticipantsInRoom(roomID)
-        # pprint(list(participantsbyRoom))
+        invitedPariticipants = participants.getInvitedParticipantsInRoom(
+            roomID
+        )
+        uninvitedParticipants = participants.getUnInvitedParticipantsInRoom(
+            roomID
+        )
         return render_template(
-            "manage.html", roomID=roomID, invitedParticipants=invitedPariticipants, uninvitedParticipants=uninvitedParticipants
+            "manage.html",
+            roomID=roomID,
+            invitedParticipants=invitedPariticipants,
+            uninvitedParticipants=uninvitedParticipants,
         )
     else:
         flask_abort(403)
@@ -164,10 +171,13 @@ def invite():
     room_id = js["roomID"]
     participant_email = js["email"]
 
-    print(bold(blue(f"{room_id=}, {participant_email=}")))
+    print(bold(blue(f"Inviting {room_id = }, {participant_email = }")))
     # print(participants.getParticipantsEmailsByRoom(room_id))
-    if participant_email in participants.getParticipantsEmailsByRoom(room_id):
-        print("Yes data received.", room_id, participant_email)
+    if (
+        participants.ifParticipantInRoom(room_id, participant_email)
+        is not None
+    ):
+        print(bold(blue("Yes data received.", room_id, participant_email)))
         # notify the participant to join now by email and website if online
         # notify the next participant to be ready by email and website if online
         # Add invite time to the document
@@ -179,16 +189,22 @@ def invite():
     else:
         return {"result": "failure"}
 
+
 @app.route("/notify", methods=["POST"])
 def notify():
-    room_id = request.get_json(force=True)["roomID"]
-    participant_email = request.get_json(force=True)["email"]
-    if participant_email in participants.getParticipantsEmailsByRoom(room_id):
-        invite_user(room_id, participant_email)
-        #notify_user(room_id, participant_email)
+    js = request.get_json(force=True)
+    room_id = js["roomID"]
+    participant_email = js["email"]
+    print(blue(bold(f"Notifying {room_id=} {participant_email=}")))
+    if (
+        participants.ifParticipantInRoom(room_id, participant_email)
+        is not None
+    ):
+        # Notifying logic
         return {"result": "success"}
     else:
         return {"result": "failure"}
+
 
 @app.route("/join/<roomID>/")
 @login_required
@@ -308,4 +324,3 @@ if __name__ == "__main__":
     socketio.run(
         app, host="localhost", port=5000, log_output=False, use_reloader=True
     )
-    # app.run(debug=True)
