@@ -3,15 +3,14 @@
 <div class="row">
   <div class="col-8">
     <div class="course-queue">
-      <h4>{{name}}</h4>
+      <h4>Room Name: <em>{{name}}</em></h4>
       <h4>Date: {{start_date}}</h4>
-
     </div>
     <br />
     <div class="queue-position">
-      You are {{queuePosition}}th in the queue.<br /><br />
+      Your position in the queue 👉 {{queuePosition}}.<br /><br />
       <img class="rounded-circle" src={{interviewer_profile_pic}} width="70">
-      Your Interviewer is {{interviewer_name}}.
+      Your Interviewer is <em>{{interviewer_name}}</em>.
     </div>
   </div>
   <div class="col">
@@ -23,7 +22,6 @@
       </thead>
       <tbody>
         <tr>
-          <!-- <th scope="row">1</th> -->
           <td>Your meet is scheduled that day</td>
         </tr>
       </tbody>
@@ -31,5 +29,5 @@
   </div>
 </div>
 <br /><br />
-<div class="meet-link">Meet link:{{meeting_link}}</div>
+<div class="meet-link">Meet link: <a href="{{meeting_link}}">{{meeting_link}}</a></div>
 {% endblock %}
