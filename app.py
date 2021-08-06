@@ -4,9 +4,9 @@ from csv import reader
 from datetime import datetime
 from io import StringIO
 from pprint import pprint
-from curtsies.fmtfuncs import red, bold, green, blue, yellow
 
 import requests
+from curtsies.fmtfuncs import blue, bold, green, red, yellow
 from flask import Flask
 from flask import abort as flask_abort
 from flask import redirect, render_template, request, url_for
@@ -35,7 +35,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 app.debug = False
 
-socketio = SocketIO(app, logger=False, engineio_logger=False)
+socketio = SocketIO(app, logger=True, engineio_logger=True)
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 login_manager = LoginManager()
@@ -322,5 +322,5 @@ def on_leave(data=None):
 
 if __name__ == "__main__":
     socketio.run(
-        app, host="localhost", port=5000, log_output=False, use_reloader=True
+        app, host="localhost", port=5000, log_output=True, use_reloader=True
     )
