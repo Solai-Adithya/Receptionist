@@ -22,7 +22,7 @@ from oauthlib.oauth2 import WebApplicationClient
 
 from constants import GOOGLE_CLIENT_ID, GOOGLE_DISCOVERY_URL, GOOGLE_SECRET
 from db import Participants, Rooms, User
-from functions import generateRoomID
+from functions import generateRoomID, invite_user, notify_user
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 os.environ["FLASK_ENV"] = "development"
@@ -158,18 +158,11 @@ def manage(roomID):
 
 @app.route("/invite", methods=["POST"])
 def invite():
-    #extract room id from request
-    print("Working till eherasdf")
     room_id = request.get_json(force=True)["roomID"]
     participant_email = request.get_json(force=True)["email"]
-    print(room_id, participant_email)
-    print(participants.getParticipantsEmailsByRoom(room_id))
     if participant_email in participants.getParticipantsEmailsByRoom(room_id):
-        print("Yes data received.",  room_id, participant_email)
-        #notify the participant to join now by email and website if online
-        #notify the next participant to be ready by email and website if online
-        #Add invite time to the document
-        
+        invite_user(room_id, participant_email)
+        #notify the next participant to be ready by email and website if online - experimental
         participants.removeParticipantFromQueue(room_id, participant_email)
         participants.addInviteTimestamp(room_id, participant_email)
         return {"result": "success"}
@@ -180,9 +173,9 @@ def invite():
 def notify():
     room_id = request.get_json(force=True)["roomID"]
     participant_email = request.get_json(force=True)["email"]
-    print("Notifying",room_id, participant_email)
     if participant_email in participants.getParticipantsEmailsByRoom(room_id):
-        #Notifying logic
+        invite_user(room_id, participant_email)
+        #notify_user(room_id, participant_email)
         return {"result": "success"}
     else:
         return {"result": "failure"}

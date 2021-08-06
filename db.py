@@ -1,5 +1,3 @@
-from os import stat
-from re import S
 from dns.rdatatype import NULL
 from dns.resolver import query
 import pymongo
@@ -41,6 +39,14 @@ class User(UserMixin):
         )
         return user
 
+    # Fetch user using id
+    @staticmethod
+    def getUserByEmail(email, projection=None):
+        userDetails = UsersCollection.find_one({"email": email}, projection)
+        if not userDetails:
+            return None
+        return userDetails
+
     # Create a new user
     @staticmethod
     def create(id_, name, first_name, email, profile_pic):
@@ -62,7 +68,8 @@ class Rooms:
         room = RoomsCollection.find_one(
             {"_id": room_id}, projection=projection
         )
-        return room
+        print("Room Details:", room)
+        return dict(room)
 
     # Fetch all rooms created by a user
     @staticmethod
@@ -72,7 +79,7 @@ class Rooms:
             sort=[("start_date", pymongo.ASCENDING)],
             projection=projection,
         )
-        return rooms
+        return list(rooms)
 
     # Create a new room
     @staticmethod
@@ -86,7 +93,6 @@ class Participants:
         roomDetails = dict(RoomsCollection.find_one(
             {"_id": room_id} 
         ))
-        print("ROOM details:", roomDetails)
         interviewerDetails = dict(UsersCollection.find_one(
             {"email": roomDetails["creator"]}, {"name":1, "profile_pic":1}
         ))

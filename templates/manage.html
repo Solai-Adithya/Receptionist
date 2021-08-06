@@ -30,7 +30,7 @@
         </div>
         <div class="btn-group status">
           <button type="button" class="btn btn-danger notify-button" onclick="notify(`{{user['email']}}`, `{{roomID}}`)" aria-expanded="false">
-            Notify
+            Notify again
           </button>
           <!-- Make a separate group of participants who have already been invited and hence have null queue-position -->
           <!-- Later give an option to export all data including sno, email, name, score and review in csv format -->
@@ -84,7 +84,6 @@
   }
 
   async function notify(email, roomID) {
-    console.log("Notify function called")
     const rawResponse = await fetch('/notify', {
       method: 'POST',
       dataType: 'json',
