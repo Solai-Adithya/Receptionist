@@ -4,7 +4,7 @@ from csv import reader
 from datetime import datetime
 from io import StringIO
 from pprint import pprint
-from curtsies.fmtfuncs import red, bold, green, on_blue, yellow
+from curtsies.fmtfuncs import red, bold, green, blue, yellow
 
 import requests
 from flask import Flask
@@ -156,15 +156,25 @@ def manage(roomID):
     else:
         flask_abort(403)
 
+
 @app.route("/invite", methods=["POST"])
 def invite():
-    room_id = request.get_json(force=True)["roomID"]
-    participant_email = request.get_json(force=True)["email"]
+    # extract room id from request
+    js = request.get_json(force=True)
+    room_id = js["roomID"]
+    participant_email = js["email"]
+
+    print(bold(blue(f"{room_id=}, {participant_email=}")))
+    # print(participants.getParticipantsEmailsByRoom(room_id))
     if participant_email in participants.getParticipantsEmailsByRoom(room_id):
-        invite_user(room_id, participant_email)
-        #notify the next participant to be ready by email and website if online - experimental
+        print("Yes data received.", room_id, participant_email)
+        # notify the participant to join now by email and website if online
+        # notify the next participant to be ready by email and website if online
+        # Add invite time to the document
+
         participants.removeParticipantFromQueue(room_id, participant_email)
         participants.addInviteTimestamp(room_id, participant_email)
+
         return {"result": "success"}
     else:
         return {"result": "failure"}
@@ -196,7 +206,9 @@ def flask_join_room(roomID):
             to=roomID,
             namespace="/",
         )
-        joiningDetails = participants.getJoiningDetails(roomID, current_user.email)
+        joiningDetails = participants.getJoiningDetails(
+            roomID, current_user.email
+        )
         return render_template("participant.html", **joiningDetails)
     else:
         flask_abort(403)
