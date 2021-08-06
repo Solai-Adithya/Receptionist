@@ -3,6 +3,7 @@
 {% block addl_css %}
 <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
 <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='manage.css') }}">
+<script src="react-test-file.js"></script>
 {% endblock %}
 
 <!-- Create a space with interview controls. 
@@ -12,15 +13,39 @@
 -->
 
 <div class="table-responsive">
-  <ol class="list-group-participants">
+  <h3>Invited Participants</h3>
+  <ol class="list-group participants invited">
     <!-- List of invited participants -->
     <!-- Here the invite button should become notify and the interviewer should be able to notify the person again if needed -->
-  </ol>
-  <ol class="list-group participants">
-    <!-- List of participants not yet invited -->
-    {% for participant in participants %}
+    {% for participant in invitedParticipants %}
       {% set user = participant["user"] %}
-      <li class="list-group-item d-flex justify-content-between align-items-start parentItem">
+      <li class="list-group-item d-flex justify-content-between align-items-start">
+        <div class="ms-2 me-auto name-container">
+          <div class="profile-pic">
+            <span class="imgHelper"></span>
+            <img class="rounded-circle" src="{{user['profile_pic']}}" width="55" />
+          </div>
+          <div class="name">{{user['name']}}</div>
+          <div class="email">{{user['email']}}</div>
+        </div>
+        <div class="btn-group status">
+          <button type="button" class="btn btn-danger notify-button" onclick="notify(`{{user['email']}}`, `{{roomID}}`)" aria-expanded="false">
+            Notify
+          </button>
+          <!-- Make a separate group of participants who have already been invited and hence have null queue-position -->
+          <!-- Later give an option to export all data including sno, email, name, score and review in csv format -->
+          <!-- Finally make a small dropdown button to postpone or cancel the interview. -->
+        </div>
+      </li>
+    {% endfor %}
+  </ol>
+  <hr>
+  <h3>Participants in Queue</h3>
+  <ol class="list-group participants not-invited">
+    <!-- List of participants not yet invited -->
+    {% for participant in uninvitedParticipants %}
+      {% set user = participant["user"] %}
+      <li class="list-group-item d-flex justify-content-between align-items-start">
         <div class="queue-position">{{participant["queuePosition"]}}</div>
         <div class="ms-2 me-auto name-container">
           <div class="profile-pic">
@@ -31,7 +56,7 @@
           <div class="email">{{user['email']}}</div>
         </div>
         <div class="btn-group status">
-          <button type="button" class="btn btn-danger" onclick="invite(`{{user['email']}}`, `{{roomID}}`)" aria-expanded="false">
+          <button type="button" class="btn btn-danger invite-button" onclick="invite(`{{user['email']}}`, `{{roomID}}`)" aria-expanded="false">
             Invite
           </button>
           <!-- Make a separate group of participants who have already been invited and hence have null queue-position -->
@@ -44,6 +69,8 @@
 </div>
 <script>
   async function invite(email, roomID) {
+    var not_invited = document.getElementById("not-invited");
+    var invited = document.getElementById("invited");
     console.log("Starting")
     const rawResponse = await fetch('/invite', {
       method: 'POST',
@@ -55,5 +82,32 @@
       body: JSON.stringify({"email": email, "roomID": roomID})
     });
   }
+
+  async function notify(email, roomID) {
+    console.log("Notify function called")
+    const rawResponse = await fetch('/notify', {
+      method: 'POST',
+      dataType: 'json',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({"email": email, "roomID": roomID})
+    });
+  }
+
+  // document.addEventListener("DOMContentLoaded", function() {
+  //   var invite_buttons = document.querySelectorAll(".invite-button");
+  //   var not_invited = document.getElementById("not-invited");
+  //   var invited = document.getElementById("invited");
+
+  //   function moveItem(e) {
+  //       invited.appendChild(this.parentElement.parentElement);
+  //   }
+
+  //   for (var i = 0; i < invite_buttons.length; i++) {
+  //       invite_buttons[i].addEventListener("click", moveItem);
+  //   }
+  // });
 </script>
 {% endblock %}

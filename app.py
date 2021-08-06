@@ -147,10 +147,11 @@ def manage(roomID):
     """
     roomDetail = rooms.getRoomByID(roomID, projection=["creator"])
     if roomDetail is not None and roomDetail["creator"] == current_user.email:
-        participantsbyRoom = participants.getParticipantsByRoom(roomID)
+        invitedPariticipants = participants.getInvitedParticipantsInRoom(roomID)
+        uninvitedParticipants = participants.getUnInvitedParticipantsInRoom(roomID)
         # pprint(list(participantsbyRoom))
         return render_template(
-            "manage.html", roomID=roomID, participants=participantsbyRoom
+            "manage.html", roomID=roomID, invitedParticipants=invitedPariticipants, uninvitedParticipants=uninvitedParticipants
         )
     else:
         flask_abort(403)
@@ -173,8 +174,18 @@ def invite():
         participants.addInviteTimestamp(room_id, participant_email)
         return {"result": "success"}
     else:
-        flask_abort(403)
+        return {"result": "failure"}
 
+@app.route("/notify", methods=["POST"])
+def notify():
+    room_id = request.get_json(force=True)["roomID"]
+    participant_email = request.get_json(force=True)["email"]
+    print("Notifying",room_id, participant_email)
+    if participant_email in participants.getParticipantsEmailsByRoom(room_id):
+        #Notifying logic
+        return {"result": "success"}
+    else:
+        return {"result": "failure"}
 
 @app.route("/join/<roomID>/")
 @login_required
