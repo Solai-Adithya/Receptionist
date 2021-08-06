@@ -25,15 +25,18 @@
           <span class="imgHelper"></span>
           <img class="rounded-circle" src="{{user['profile_pic']}}" width="55" />
         </div>
+        <div class="name">{{user['name']}}</div>
+        <div class="email">{{user['email']}}</div>
         <div class="btn-group status">
-          <button type="button" class="btn btn-danger notify-button" onclick="notify(`{{user['email']}}`, `{{roomID}}`)" aria-expanded="false">
+          <button type="button" class="btn btn-danger notify-button" onclick="notify(`{{user['email']}}`, `{{roomID}}`)"
+            aria-expanded="false">
             Notify again
           </button>
           <!-- Make a separate group of participants who have already been invited and hence have null queue-position -->
           <!-- Later give an option to export all data including sno, email, name, score and review in csv format -->
           <!-- Finally make a small dropdown button to postpone or cancel the interview. -->
         </div>
-      </li>
+    </li>
     {% endfor %}
   </ol>
   <hr>
