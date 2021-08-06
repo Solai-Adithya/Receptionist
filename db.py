@@ -136,7 +136,63 @@ class Participants:
 
     # List of participants in a room
     @staticmethod
-    def getParticipantsByRoom(room_id):
+    def getInvitedParticipantsInRoom(room_id):
+        invited_participants = ParticipantsCollection.aggregate(
+            [
+                {"$match": {"roomID": room_id, "queuePosition":-1}},
+                {
+                    "$lookup": {
+                        "from": "Users",
+                        "localField": "email",
+                        "foreignField": "email",
+                        "as": "user",
+                    }
+                },
+                {"$unwind": "$user"},
+                {
+                    "$project": {
+                        "_id": 0,
+                        "user.email": "$user.email",
+                        "user.name": "$user.name",
+                        "user.profile_pic": "$user.profile_pic",
+                    }
+                },
+                {"$sort": {"queuePosition": pymongo.ASCENDING}},
+            ]
+        )
+        #Additionally sort by invite timestamp later
+        return list(invited_participants)
+
+    @staticmethod
+    def getUnInvitedParticipantsInRoom(room_id):
+        uninvited_participants = ParticipantsCollection.aggregate(
+            [
+                {"$match": {"roomID": room_id, "queuePosition":{'$gt': 0}}},
+                {
+                    "$lookup": {
+                        "from": "Users",
+                        "localField": "email",
+                        "foreignField": "email",
+                        "as": "user",
+                    }
+                },
+                {"$unwind": "$user"},
+                {
+                    "$project": {
+                        "_id": 0,
+                        "queuePosition": 1,
+                        "user.email": "$user.email",
+                        "user.name": "$user.name",
+                        "user.profile_pic": "$user.profile_pic",
+                    }
+                },
+                {"$sort": {"queuePosition": pymongo.ASCENDING}},
+            ]
+        )
+        return list(uninvited_participants)
+
+    @staticmethod
+    def getAllParticipantsInRoom(room_id):
         participants = ParticipantsCollection.aggregate(
             [
                 {"$match": {"roomID": room_id}},
