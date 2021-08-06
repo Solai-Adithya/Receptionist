@@ -1,44 +1,59 @@
 {% extends 'base.html' %}
 {% block main_content %}
 {% block addl_css %}
+<script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
 <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='manage.css') }}">
 {% endblock %}
+
+<!-- Create a space with interview controls. 
+1) option to notify next person in queue once you invite one person to the meet - default on.
+2) option to expose meet link only when the person is invited or notified - default on.
+3) Show participants their respective queue positions based on the number of invites you have sent - default on. 
+-->
+
 <div class="table-responsive">
+  <ol class="list-group-participants">
+    <!-- List of invited participants -->
+    <!-- Here the invite button should become notify and the interviewer should be able to notify the person again if needed -->
+  </ol>
   <ol class="list-group participants">
+    <!-- List of participants not yet invited -->
     {% for participant in participants %}
       {% set user = participant["user"] %}
-    <li class="list-group-item d-flex justify-content-between align-items-start">
-      <div class="queue-position">{{participant["queuePosition"]}}</div>
-      <div class="ms-2 me-auto name-container">
-        <div class="profile-pic">
-          <span class="imgHelper"></span>
-          <img class="rounded-circle" src="{{user['profile_pic']}}" width="55" />
+      <li class="list-group-item d-flex justify-content-between align-items-start parentItem">
+        <div class="queue-position">{{participant["queuePosition"]}}</div>
+        <div class="ms-2 me-auto name-container">
+          <div class="profile-pic">
+            <span class="imgHelper"></span>
+            <img class="rounded-circle" src="{{user['profile_pic']}}" width="55" />
+          </div>
+          <div class="name">{{user['name']}}</div>
+          <div class="email">{{user['email']}}</div>
         </div>
-        <div class="name">{{user['name']}}</div>
-        <div class="email">{{user['email']}}</div>
-      </div>
-      <div class="btn-group status">
-        <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown"
-          aria-expanded="false">
-          Status
-        </button>
-        <ul class="dropdown-menu">
-          <li><a class="dropdown-item" href="#">Done</a></li>
-          <li><a class="dropdown-item" href="#">Cancelled</a></li>
-        </ul>
-      </div>
-      <div class="btn-group notify">
-        <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown"
-          aria-expanded="false">
-          Notify
-        </button>
-        <ul class="dropdown-menu">
-          <li><a class="dropdown-item" href="#">Notify through website</a></li>
-          <li><a class="dropdown-item" href="#">Notify through mail</a></li>
-        </ul>
-      </div>
-    </li>
+        <div class="btn-group status">
+          <button type="button" class="btn btn-danger" onclick="invite(`{{user['email']}}`, `{{roomID}}`)" aria-expanded="false">
+            Invite
+          </button>
+          <!-- Make a separate group of participants who have already been invited and hence have null queue-position -->
+          <!-- Later give an option to export all data including sno, email, name, score and review in csv format -->
+          <!-- Finally make a small dropdown button to postpone or cancel the interview. -->
+        </div>
+      </li>
     {% endfor %}
   </ol>
 </div>
+<script>
+  async function invite(email, roomID) {
+    console.log("Starting")
+    const rawResponse = await fetch('/invite', {
+      method: 'POST',
+      dataType: 'json',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({"email": email, "roomID": roomID})
+    });
+  }
+</script>
 {% endblock %}

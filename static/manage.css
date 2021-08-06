@@ -15,7 +15,7 @@
       "profile-pic name name name"
       "profile-pic email email email"
       "profile-pic email email email";
-  }
+}
   
 .profile-pic { 
     grid-area: profile-pic;
@@ -67,4 +67,8 @@ img {
 
 .notify {
     margin: 10px;
+}
+
+.feedback {
+    background-color: white;
 }
