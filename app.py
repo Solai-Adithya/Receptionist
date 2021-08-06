@@ -155,6 +155,26 @@ def manage(roomID):
     else:
         flask_abort(403)
 
+@app.route("/invite", methods=["POST"])
+def invite():
+    #extract room id from request
+    print("Working till eherasdf")
+    room_id = request.get_json(force=True)["roomID"]
+    participant_email = request.get_json(force=True)["email"]
+    print(room_id, participant_email)
+    print(participants.getParticipantsEmailsByRoom(room_id))
+    if participant_email in participants.getParticipantsEmailsByRoom(room_id):
+        print("Yes data received.",  room_id, participant_email)
+        #notify the participant to join now by email and website if online
+        #notify the next participant to be ready by email and website if online
+        #Add invite time to the document
+        
+        participants.removeParticipantFromQueue(room_id, participant_email)
+        participants.addInviteTimestamp(room_id, participant_email)
+        return {"result": "success"}
+    else:
+        flask_abort(403)
+
 
 @app.route("/join/<roomID>/")
 @login_required
@@ -249,23 +269,23 @@ def logout():
     return redirect("/")
 
 
-# @socketio.on("to-join")
-# def io_to_join_room(data):
-#     print(yellow(f"{current_user.email} joins {data}"))
-#     socketio.join_room(data.roomID)
+@socketio.on("to-join")
+def io_to_join_room(data):
+    print(yellow(f"{current_user.email} joins {data}"))
+    socketio.join_room(data.roomID)
 
 
-# @socketio.on("connect")
-# def io_join_room(data=None):
-#     print(yellow(f"{current_user.email} used join_room {data}"))
+@socketio.on("connect")
+def io_join_room(data=None):
+    print(yellow(f"{current_user.email} used join_room {data}"))
 
 
-# @socketio.on("disconnect")
-# def on_leave(data=None):
-#     """
-#     Sent after leaving a room.
-#     """
-#     print(yellow(f"{current_user.email} left {data}"))
+@socketio.on("disconnect")
+def on_leave(data=None):
+    """
+    Sent after leaving a room.
+    """
+    print(yellow(f"{current_user.email} left {data}"))
 
 
 if __name__ == "__main__":

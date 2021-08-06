@@ -5,7 +5,7 @@ from flask_socketio import disconnect
 
 
 def generateRoomID():
-    roomID = "".join([chr(random.randint(97, 122)) for _ in range(16)])
+    roomID = "".join([chr(random.randint(97, 122)) for _ in range(5)])
     return roomID
 
 

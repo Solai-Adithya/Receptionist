@@ -1,3 +1,7 @@
+from os import stat
+from re import S
+from dns.rdatatype import NULL
+from dns.resolver import query
 import pymongo
 from flask_login import UserMixin
 from constants import ATLAS_ADMIN_PWD
@@ -157,7 +161,16 @@ class Participants:
                 {"$sort": {"queuePosition": pymongo.ASCENDING}},
             ]
         )
-        return participants
+        return list(participants)
+
+    @staticmethod
+    def getParticipantsEmailsByRoom(room_id):
+        #Find list of participants in a room
+        participants = ParticipantsCollection.find({"roomID": room_id}, {"_id":0, "email":1})
+        result = []
+        for participant in participants:
+            result.append(participant["email"])
+        return result
 
     # Add participants to a room
     @staticmethod
@@ -185,3 +198,46 @@ class Participants:
         return ParticipantsCollection.find_one(
             {"roomID": room_id, "email": email}
         )
+
+    @staticmethod
+    def removeParticipantFromQueue(room_id, email):
+        present_queue_position = ParticipantsCollection.find(
+            {"roomID": room_id, "email": email}, {"queuePosition": 1}   
+        )[0]["queuePosition"]
+
+        if(present_queue_position!=-1):
+            ParticipantsCollection.update_many(
+                {"roomID":room_id, "queuePosition":{"$gt":present_queue_position}}, {"$inc": {"queuePosition":-1}}
+            )
+            ParticipantsCollection.update_one(
+                {"roomID": room_id, "email": email}, {"$set": {"queuePosition":-1}}
+            )
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def addInviteTimestamp(room_id, email):
+        ParticipantsCollection.update_one(
+            {"roomID": room_id, "email": email}, {"$set": {"inviteTimeStamp": datetime.utcnow()}}
+        )
+        return True
+
+    @staticmethod
+    def reorderParticipants(room_id, email, new_position):
+        present_queue_position = ParticipantsCollection.find(
+            {"roomID": room_id, "email": email}, {"queuePosition": 1}   
+        )[0]["queuePosition"]
+        if(present_queue_position!=-1):
+            ParticipantsCollection.update_many(
+                {"roomID":room_id, "queuePosition":{"$gt":present_queue_position}}, {"$inc": {"queuePosition":-1}}
+            )
+            ParticipantsCollection.update_many(
+                {"roomID":room_id, "queuePosition":{"$gte":new_position}}, {"$inc": {"queuePosition":1}}
+            )
+            ParticipantsCollection.update_one(
+                {"roomID": room_id, "email": email}, {"$set": {"queuePosition":new_position}}
+            )
+            return True
+        else:
+            return False
