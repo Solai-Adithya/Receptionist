@@ -3,7 +3,6 @@
 {% block addl_css %}
 <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
 <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='manage.css') }}">
-<script src="react-test-file.js"></script>
 {% endblock %}
 
 <!-- Create a space with interview controls. 
@@ -73,7 +72,7 @@
   async function invite(email, roomID) {
     var not_invited = document.getElementById("not-invited");
     var invited = document.getElementById("invited");
-    console.log("Starting")
+    console.log("Starting invite");
     const rawResponse = await fetch('/invite', {
       method: 'POST',
       dataType: 'json',
@@ -94,45 +93,11 @@
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ "email": email, "roomID": roomID })
-    });
+    })
+      .then(res => res.json())
+      .then((json) => {
+        alert(json["result"]);
+      })
   }
-
-  // BOILERPLATE
-  function notifyMe(user, message) {
-    // Let's check if the browser supports notifications
-    if (!("Notification" in window)) {
-      alert("This browser does not support desktop notification");
-    }
-    // Let's check if the user is okay to get some notification
-    else if (Notification.permission === "granted") {
-      // If it's okay let's create a notification
-      var options = {
-        body: message,
-      };
-      var notification = new Notification(user + " Posted a comment", options);
-    }
-    // Otherwise, we need to ask the user for permission
-    // Note, Chrome does not implement the permission static property
-    // So we have to check for NOT 'denied' instead of 'default'
-    else if (Notification.permission !== 'denied') {
-      Notification.requestPermission(function (permission) {
-        // Whatever the user answers, we make sure we store the information
-        if (!('permission' in Notification)) {
-          Notification.permission = permission;
-        }
-        // If the user is okay, let's create a notification
-        if (permission === "granted") {
-          var options = {
-            body: message,
-            dir: "ltr"
-          };
-          var notification = new Notification(user + " Posted a comment", options);
-        }
-      });
-    }
-  }
-
-		  // At last, if the user already denied any notification, and you
-		  // want to be respectful there is no need to bother them any more.
 </script>
 {% endblock %}

@@ -3,13 +3,12 @@ import os
 from csv import reader
 from datetime import datetime
 from io import StringIO
-from pprint import pprint
 
 import requests
 from curtsies.fmtfuncs import blue, bold, green, red, yellow
 from flask import Flask
 from flask import abort as flask_abort
-from flask import redirect, render_template, request, url_for
+from flask import jsonify, redirect, render_template, request, url_for
 from flask_login import (
     LoginManager,
     current_user,
@@ -35,7 +34,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 app.debug = False
 
-socketio = SocketIO(app, logger=True, engineio_logger=True)
+socketio = SocketIO(app, logger=True, engineio_logger=False)
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 login_manager = LoginManager()
@@ -154,6 +153,12 @@ def manage(roomID):
         uninvitedParticipants = participants.getUnInvitedParticipantsInRoom(
             roomID
         )
+        emit(
+            "to-join",
+            {"data": current_user.email, "roomID": roomID},
+            to=roomID,
+            namespace="/",
+        )
         return render_template(
             "manage.html",
             roomID=roomID,
@@ -164,27 +169,43 @@ def manage(roomID):
         flask_abort(403)
 
 
-@app.route("/notify", methods=["POST"])
 @app.route("/invite", methods=["POST"])
 def invite():
     js = request.get_json(force=True)
     room_id = js["roomID"]
     participant_email = js["email"]
-    print(bold(blue(f"Inviting {room_id = }, {participant_email = }")))
-    # extract room id from request
-    # print(participants.getParticipantsEmailsByRoom(room_id))
+
+    print(bold(blue(f"Inviting {participant_email = } to {room_id = }")))
     if (
         participants.ifParticipantInRoom(room_id, participant_email)
         is not None
     ):
         invite_user(room_id, participant_email)
-        # notify the next participant to be ready by email and website if online - experimental
-        print(bold(blue("Yes data received.", room_id, participant_email)))
+        # notify the next participant to be
+        # ready by email and website if online - experimental
+        print(bold(blue("Successful ", room_id, participant_email)))
         participants.removeParticipantFromQueue(room_id, participant_email)
         participants.addInviteTimestamp(room_id, participant_email)
         return {"result": "success"}
     else:
         return {"result": "failure"}
+
+
+@app.route("/notify", methods=["POST"])
+def notify():
+    js = request.get_json(force=True)
+    room_id = js["roomID"]
+    participant_email = js["email"]
+    if (
+        participants.ifParticipantInRoom(room_id, participant_email)
+        is not None
+    ):
+        invite_user(room_id, participant_email)
+        emit("notify everyone", {"data": "hey"}, to=room_id, namespace="/")
+        res = {"result": "success"}
+    else:
+        res = {"result": "failure"}
+    return jsonify(res)
 
 
 @app.route("/join/<roomID>/")
@@ -199,7 +220,7 @@ def flask_join_room(roomID):
     ):
         emit(
             "to-join",
-            {"data": f"{current_user.email} has joined", "roomID": roomID},
+            {"data": current_user.email, "roomID": roomID},
             to=roomID,
             namespace="/",
         )
@@ -284,13 +305,13 @@ def logout():
 
 @socketio.on("to-join")
 def io_to_join_room(data):
-    print(yellow(f"{current_user.email} joins {data}"))
+    print(bold(yellow(f"{data['data']} to join {data['roomID']}")))
     socketio.join_room(data.roomID)
 
 
 @socketio.on("connect")
 def io_join_room(data=None):
-    print(yellow(f"{current_user.email} used join_room {data}"))
+    print(bold(yellow(f"{current_user.email} joined {data}")))
 
 
 @socketio.on("disconnect")
@@ -298,7 +319,7 @@ def on_leave(data=None):
     """
     Sent after leaving a room.
     """
-    print(yellow(f"{current_user.email} left {data}"))
+    print(bold(yellow(f"{current_user.email} left {data}")))
 
 
 if __name__ == "__main__":

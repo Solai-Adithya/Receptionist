@@ -1,5 +1,3 @@
-from dns.rdatatype import NULL
-from dns.resolver import query
 import pymongo
 from flask_login import UserMixin
 from constants import ATLAS_ADMIN_PWD
@@ -69,7 +67,7 @@ class Rooms:
             {"_id": room_id}, projection=projection
         )
         print("Room Details:", room)
-        return dict(room)
+        return room
 
     # Fetch all rooms created by a user
     @staticmethod
@@ -90,31 +88,26 @@ class Rooms:
 class Participants:
     @staticmethod
     def getJoiningDetails(room_id, email):
-        roomDetails = dict(RoomsCollection.find_one({"_id": room_id}))
-        print("ROOM details:", roomDetails)
-        interviewerDetails = dict(
-            UsersCollection.find_one(
-                {"email": roomDetails["creator"]},
-                {"name": 1, "profile_pic": 1},
-            )
+        roomDetails = RoomsCollection.find_one({"_id": room_id})
+        interviewerDetails = UsersCollection.find_one(
+            {"email": roomDetails["creator"]},
+            {"name": 1, "profile_pic": 1},
         )
-        participantDetails = dict(
-            ParticipantsCollection.find_one(
-                {"email": email},
-                {
-                    "windowLowerBound": 1,
-                    "windowUpperBound": 1,
-                    "status": 1,
-                    "queuePosition": 1,
-                },
-            )
+
+        participantDetails = ParticipantsCollection.find_one(
+            {"email": email},
+            {
+                "windowLowerBound": 1,
+                "windowUpperBound": 1,
+                "status": 1,
+                "queuePosition": 1,
+            },
         )
         participantDetails["interviewer_name"] = interviewerDetails["name"]
         participantDetails["interviewer_profile_pic"] = interviewerDetails[
             "profile_pic"
         ]
         participantDetails.update(roomDetails)
-        print(participantDetails)
         return participantDetails
 
     # List of rooms where the user is a participant
