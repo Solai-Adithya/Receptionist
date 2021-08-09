@@ -4,6 +4,34 @@ socket.on("connect", (data) => {
     console.log(data);
 });
 
+const l = String(window.location);
+const found = l.match(/.*\/(join|manage)\/(\w+).*/);
+console.log(found);
+const m = found[1];
+const r = found[2];
+
+if (m === "join") {
+    setInterval(() => {
+        fetch("/get_QP", {
+            method: "POST",
+            dataType: "json",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ roomID: r }),
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                // console.log(res);
+                const e = document.getElementById("queuePosition");
+                if (m === "join" && res["queuePosition"] !== e.innerText) {
+                    e.innerText = res["queuePosition"];
+                }
+            });
+    }, 2000);
+}
+
 // BOILERPLATE
 function notifyMe(user, message) {
     // Let's check if the browser supports notifications

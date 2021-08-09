@@ -330,3 +330,10 @@ class Participants:
             return True
 
         return False
+
+    @staticmethod
+    def getQueuePosition(room_id, email):
+        return ParticipantsCollection.find_one(
+            {"roomID": room_id, "email": email},
+            projection={"queuePosition": 1, "_id": 0},
+        )

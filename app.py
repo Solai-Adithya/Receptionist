@@ -20,7 +20,7 @@ from flask_socketio import SocketIO, emit, join_room
 from oauthlib.oauth2 import WebApplicationClient
 
 from constants import GOOGLE_CLIENT_ID, GOOGLE_DISCOVERY_URL, GOOGLE_SECRET
-from db import Participants, Rooms, User
+from db import Participants, ParticipantsCollection, Rooms, User
 from functions import generateRoomID, invite_user, notify_user
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
@@ -34,7 +34,11 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 app.debug = False
 
-socketio = SocketIO(app, logger=True, engineio_logger=False)
+# https://stackoverflow.com/questions/45918818/how-to-send-message-from-server-to-client-using-flask-socket-io
+# https://python-socketio.readthedocs.io/en/latest/server.html#eventlet
+socketio = SocketIO(
+    app, async_mode="eventlet", logger=True, engineio_logger=False
+)
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 login_manager = LoginManager()
@@ -169,6 +173,15 @@ def manage(roomID):
         flask_abort(403)
 
 
+@app.route("/get_QP", methods=["POST"])
+def getQueuePosition():
+    data = request.get_json(force=True)
+    roomID = data["roomID"]
+    res = Participants.getQueuePosition(roomID, current_user.email)
+    print(bold(green(f"{roomID}, {current_user.email}, {res}")))
+    return res
+
+
 @app.route("/invite", methods=["POST"])
 def invite():
     js = request.get_json(force=True)
@@ -183,7 +196,7 @@ def invite():
         invite_user(room_id, participant_email)
         # notify the next participant to be
         # ready by email and website if online - experimental
-        print(bold(blue("Successful ", room_id, participant_email)))
+        print(bold(blue(f"Successful , {room_id=}, {participant_email=}")))
         participants.removeParticipantFromQueue(room_id, participant_email)
         participants.addInviteTimestamp(room_id, participant_email)
         return {"result": "success"}
@@ -201,7 +214,6 @@ def notify():
         is not None
     ):
         invite_user(room_id, participant_email)
-        emit("notify everyone", {"data": "hey"}, to=room_id, namespace="/")
         res = {"result": "success"}
     else:
         res = {"result": "failure"}

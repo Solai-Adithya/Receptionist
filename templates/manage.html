@@ -98,6 +98,9 @@
       .then((json) => {
         alert(json["result"]);
       })
+      .then(() => {
+        window.location.reload(true);
+      })
   }
 </script>
 {% endblock %}
