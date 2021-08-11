@@ -1,5 +1,3 @@
-from dns.rdatatype import NULL
-from dns.resolver import query
 import pymongo
 from flask_login import UserMixin
 from constants import ATLAS_ADMIN_PWD
@@ -69,7 +67,7 @@ class Rooms:
             {"_id": room_id}, projection=projection
         )
         print("Room Details:", room)
-        return dict(room)
+        return room
 
     # Fetch all rooms created by a user
     @staticmethod
@@ -90,21 +88,28 @@ class Rooms:
 class Participants:
     @staticmethod
     def getJoiningDetails(room_id, email):
-        roomDetails = dict(RoomsCollection.find_one(
-            {"_id": room_id} 
-        ))
-        interviewerDetails = dict(UsersCollection.find_one(
-            {"email": roomDetails["creator"]}, {"name":1, "profile_pic":1}
-        ))
-        participantDetails = dict(ParticipantsCollection.find_one(
-            {"email": email}, {"windowLowerBound":1, "windowUpperBound":1, "status":1, "queuePosition":1}
-        ))
+        roomDetails = RoomsCollection.find_one({"_id": room_id})
+        interviewerDetails = UsersCollection.find_one(
+            {"email": roomDetails["creator"]},
+            {"name": 1, "profile_pic": 1},
+        )
+
+        participantDetails = ParticipantsCollection.find_one(
+            {"email": email},
+            {
+                "windowLowerBound": 1,
+                "windowUpperBound": 1,
+                "status": 1,
+                "queuePosition": 1,
+            },
+        )
         participantDetails["interviewer_name"] = interviewerDetails["name"]
-        participantDetails["interviewer_profile_pic"] = interviewerDetails["profile_pic"]
+        participantDetails["interviewer_profile_pic"] = interviewerDetails[
+            "profile_pic"
+        ]
         participantDetails.update(roomDetails)
-        print(participantDetails)
         return participantDetails
-         
+
     # List of rooms where the user is a participant
     @staticmethod
     def getRoomsByParticipant(email):
@@ -145,7 +150,7 @@ class Participants:
     def getInvitedParticipantsInRoom(room_id):
         invited_participants = ParticipantsCollection.aggregate(
             [
-                {"$match": {"roomID": room_id, "queuePosition":-1}},
+                {"$match": {"roomID": room_id, "queuePosition": -1}},
                 {
                     "$lookup": {
                         "from": "Users",
@@ -166,14 +171,14 @@ class Participants:
                 {"$sort": {"queuePosition": pymongo.ASCENDING}},
             ]
         )
-        #Additionally sort by invite timestamp later
+        # Additionally sort by invite timestamp later
         return list(invited_participants)
 
     @staticmethod
     def getUnInvitedParticipantsInRoom(room_id):
         uninvited_participants = ParticipantsCollection.aggregate(
             [
-                {"$match": {"roomID": room_id, "queuePosition":{'$gt': 0}}},
+                {"$match": {"roomID": room_id, "queuePosition": {"$gt": 0}}},
                 {
                     "$lookup": {
                         "from": "Users",
@@ -227,8 +232,10 @@ class Participants:
 
     @staticmethod
     def getParticipantsEmailsByRoom(room_id):
-        #Find list of participants in a room
-        participants = ParticipantsCollection.find({"roomID": room_id}, {"_id":0, "email":1})
+        # Find list of participants in a room
+        participants = ParticipantsCollection.find(
+            {"roomID": room_id}, {"_id": 0, "email": 1}
+        )
         result = []
         for participant in participants:
             result.append(participant["email"])
@@ -257,6 +264,9 @@ class Participants:
 
     @staticmethod
     def ifParticipantInRoom(room_id, email):
+        """
+        Checks if participant is in the room.
+        """
         return ParticipantsCollection.find_one(
             {"roomID": room_id, "email": email}
         )
@@ -264,15 +274,22 @@ class Participants:
     @staticmethod
     def removeParticipantFromQueue(room_id, email):
         present_queue_position = ParticipantsCollection.find(
-            {"roomID": room_id, "email": email}, {"queuePosition": 1}   
-        )[0]["queuePosition"]
+            {"roomID": room_id, "email": email}, {"queuePosition": 1}
+        )
 
-        if(present_queue_position!=-1):
+        present_queue_position = present_queue_position[0]["queuePosition"]
+
+        if present_queue_position != -1:
             ParticipantsCollection.update_many(
-                {"roomID":room_id, "queuePosition":{"$gt":present_queue_position}}, {"$inc": {"queuePosition":-1}}
+                {
+                    "roomID": room_id,
+                    "queuePosition": {"$gt": present_queue_position},
+                },
+                {"$inc": {"queuePosition": -1}},
             )
             ParticipantsCollection.update_one(
-                {"roomID": room_id, "email": email}, {"$set": {"queuePosition":-1}}
+                {"roomID": room_id, "email": email},
+                {"$set": {"queuePosition": -1}},
             )
             return True
         else:
@@ -281,25 +298,42 @@ class Participants:
     @staticmethod
     def addInviteTimestamp(room_id, email):
         ParticipantsCollection.update_one(
-            {"roomID": room_id, "email": email}, {"$set": {"inviteTimeStamp": datetime.utcnow()}}
+            {"roomID": room_id, "email": email},
+            {"$set": {"inviteTimeStamp": datetime.utcnow()}},
         )
         return True
 
     @staticmethod
     def reorderParticipants(room_id, email, new_position):
         present_queue_position = ParticipantsCollection.find(
-            {"roomID": room_id, "email": email}, {"queuePosition": 1}   
-        )[0]["queuePosition"]
-        if(present_queue_position!=-1):
+            {"roomID": room_id, "email": email}, {"queuePosition": 1}
+        )
+
+        present_queue_position = present_queue_position[0]["queuePosition"]
+
+        if present_queue_position != -1:
             ParticipantsCollection.update_many(
-                {"roomID":room_id, "queuePosition":{"$gt":present_queue_position}}, {"$inc": {"queuePosition":-1}}
+                {
+                    "roomID": room_id,
+                    "queuePosition": {"$gt": present_queue_position},
+                },
+                {"$inc": {"queuePosition": -1}},
             )
             ParticipantsCollection.update_many(
-                {"roomID":room_id, "queuePosition":{"$gte":new_position}}, {"$inc": {"queuePosition":1}}
+                {"roomID": room_id, "queuePosition": {"$gte": new_position}},
+                {"$inc": {"queuePosition": 1}},
             )
             ParticipantsCollection.update_one(
-                {"roomID": room_id, "email": email}, {"$set": {"queuePosition":new_position}}
+                {"roomID": room_id, "email": email},
+                {"$set": {"queuePosition": new_position}},
             )
             return True
-        else:
-            return False
+
+        return False
+
+    @staticmethod
+    def getQueuePosition(room_id, email):
+        return ParticipantsCollection.find_one(
+            {"roomID": room_id, "email": email},
+            projection={"queuePosition": 1, "_id": 0},
+        )

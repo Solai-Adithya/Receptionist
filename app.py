@@ -3,13 +3,12 @@ import os
 from csv import reader
 from datetime import datetime
 from io import StringIO
-from pprint import pprint
-from curtsies.fmtfuncs import red, bold, green, on_blue, yellow
 
 import requests
+from curtsies.fmtfuncs import blue, bold, green, red, yellow
 from flask import Flask
 from flask import abort as flask_abort
-from flask import redirect, render_template, request, url_for
+from flask import jsonify, redirect, render_template, request, url_for
 from flask_login import (
     LoginManager,
     current_user,
@@ -21,7 +20,7 @@ from flask_socketio import SocketIO, emit, join_room
 from oauthlib.oauth2 import WebApplicationClient
 
 from constants import GOOGLE_CLIENT_ID, GOOGLE_DISCOVERY_URL, GOOGLE_SECRET
-from db import Participants, Rooms, User
+from db import Participants, ParticipantsCollection, Rooms, User
 from functions import generateRoomID, invite_user, notify_user
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
@@ -35,7 +34,11 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 app.debug = False
 
-socketio = SocketIO(app, logger=False, engineio_logger=True)
+# https://stackoverflow.com/questions/45918818/how-to-send-message-from-server-to-client-using-flask-socket-io
+# https://python-socketio.readthedocs.io/en/latest/server.html#eventlet
+socketio = SocketIO(
+    app, async_mode="eventlet", logger=True, engineio_logger=False
+)
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 login_manager = LoginManager()
@@ -54,6 +57,7 @@ def home():
         RoomsbyParticipation = participants.getRoomsByParticipant(
             current_user.email
         )
+
         return render_template(
             "upcoming.html",
             createRoomsTable=createdRooms,
@@ -147,38 +151,74 @@ def manage(roomID):
     """
     roomDetail = rooms.getRoomByID(roomID, projection=["creator"])
     if roomDetail is not None and roomDetail["creator"] == current_user.email:
-        invitedPariticipants = participants.getInvitedParticipantsInRoom(roomID)
-        uninvitedParticipants = participants.getUnInvitedParticipantsInRoom(roomID)
-        # pprint(list(participantsbyRoom))
+        invitedPariticipants = participants.getInvitedParticipantsInRoom(
+            roomID
+        )
+        uninvitedParticipants = participants.getUnInvitedParticipantsInRoom(
+            roomID
+        )
+        emit(
+            "to-join",
+            {"data": current_user.email, "roomID": roomID},
+            to=roomID,
+            namespace="/",
+        )
         return render_template(
-            "manage.html", roomID=roomID, invitedParticipants=invitedPariticipants, uninvitedParticipants=uninvitedParticipants
+            "manage.html",
+            roomID=roomID,
+            invitedParticipants=invitedPariticipants,
+            uninvitedParticipants=uninvitedParticipants,
         )
     else:
         flask_abort(403)
 
+
+@app.route("/get_QP", methods=["POST"])
+def getQueuePosition():
+    data = request.get_json(force=True)
+    roomID = data["roomID"]
+    res = Participants.getQueuePosition(roomID, current_user.email)
+    print(bold(green(f"{roomID}, {current_user.email}, {res}")))
+    return res
+
+
 @app.route("/invite", methods=["POST"])
 def invite():
-    room_id = request.get_json(force=True)["roomID"]
-    participant_email = request.get_json(force=True)["email"]
-    if participant_email in participants.getParticipantsEmailsByRoom(room_id):
+    js = request.get_json(force=True)
+    room_id = js["roomID"]
+    participant_email = js["email"]
+
+    print(bold(blue(f"Inviting {participant_email = } to {room_id = }")))
+    if (
+        participants.ifParticipantInRoom(room_id, participant_email)
+        is not None
+    ):
         invite_user(room_id, participant_email)
-        #notify the next participant to be ready by email and website if online - experimental
+        # notify the next participant to be
+        # ready by email and website if online - experimental
+        print(bold(blue(f"Successful , {room_id=}, {participant_email=}")))
         participants.removeParticipantFromQueue(room_id, participant_email)
         participants.addInviteTimestamp(room_id, participant_email)
         return {"result": "success"}
     else:
         return {"result": "failure"}
 
+
 @app.route("/notify", methods=["POST"])
 def notify():
-    room_id = request.get_json(force=True)["roomID"]
-    participant_email = request.get_json(force=True)["email"]
-    if participant_email in participants.getParticipantsEmailsByRoom(room_id):
+    js = request.get_json(force=True)
+    room_id = js["roomID"]
+    participant_email = js["email"]
+    if (
+        participants.ifParticipantInRoom(room_id, participant_email)
+        is not None
+    ):
         invite_user(room_id, participant_email)
-        #notify_user(room_id, participant_email)
-        return {"result": "success"}
+        res = {"result": "success"}
     else:
-        return {"result": "failure"}
+        res = {"result": "failure"}
+    return jsonify(res)
+
 
 @app.route("/join/<roomID>/")
 @login_required
@@ -192,11 +232,13 @@ def flask_join_room(roomID):
     ):
         emit(
             "to-join",
-            {"data": f"{current_user.email} has joined", "roomID": roomID},
+            {"data": current_user.email, "roomID": roomID},
             to=roomID,
             namespace="/",
         )
-        joiningDetails = participants.getJoiningDetails(roomID, current_user.email)
+        joiningDetails = participants.getJoiningDetails(
+            roomID, current_user.email
+        )
         return render_template("participant.html", **joiningDetails)
     else:
         flask_abort(403)
@@ -275,13 +317,13 @@ def logout():
 
 @socketio.on("to-join")
 def io_to_join_room(data):
-    print(yellow(f"{current_user.email} joins {data}"))
+    print(bold(yellow(f"{data['data']} to join {data['roomID']}")))
     socketio.join_room(data.roomID)
 
 
 @socketio.on("connect")
 def io_join_room(data=None):
-    print(yellow(f"{current_user.email} used join_room {data}"))
+    print(bold(yellow(f"{current_user.email} joined {data}")))
 
 
 @socketio.on("disconnect")
@@ -289,11 +331,10 @@ def on_leave(data=None):
     """
     Sent after leaving a room.
     """
-    print(yellow(f"{current_user.email} left {data}"))
+    print(bold(yellow(f"{current_user.email} left {data}")))
 
 
 if __name__ == "__main__":
     socketio.run(
-        app, host="localhost", port=5000, log_output=False, use_reloader=True
+        app, host="localhost", port=5000, log_output=True, use_reloader=True
     )
-    # app.run(debug=True)
