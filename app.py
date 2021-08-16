@@ -34,8 +34,6 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 app.debug = False
 
-# https://stackoverflow.com/questions/45918818/how-to-send-message-from-server-to-client-using-flask-socket-io
-# https://python-socketio.readthedocs.io/en/latest/server.html#eventlet
 socketio = SocketIO(
     app, async_mode="eventlet", logger=True, engineio_logger=False
 )
@@ -132,10 +130,6 @@ def attendees_add(method):
             return (
                 "Sorry!, that room code is already taken, please refill data"
             )
-            # Replace with HTML page with the form details present and just error saying room code already exists
-            # Potential:
-            # Maybe use "flash" ?
-            # Or check the roomId while typing using AjaX ?
 
 
 @login_manager.user_loader
