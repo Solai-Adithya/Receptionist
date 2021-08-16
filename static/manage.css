@@ -4,7 +4,6 @@
 }
 .name-container {
     display: grid;
-    /* border: 1px solid black; */
     grid-template-columns: 1fr 1fr 1fr 1fr;
     grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
     gap: 0px 0px;
@@ -36,7 +35,6 @@ img {
     grid-area: name;
     font-size: 1.4em;
     font-weight: 600;
-    /* border: 1px solid green; */
     text-align: left;
     display: flex;
     justify-content: flex-end;
@@ -50,7 +48,6 @@ img {
     justify-content: flex-start;
     align-content: center;
     flex-direction: column;
-    /* border: 1px solid red; */
 }
 
 .queue-position {

@@ -1,21 +1,14 @@
 {% extends 'base.html' %}
 {% block main_content %}
 {% block addl_css %}
-<script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-latest.min.js"></script>
 <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='manage.css') }}">
 {% endblock %}
-
-<!-- Create a space with interview controls. 
-1) option to notify next person in queue once you invite one person to the meet - default on.
-2) option to expose meet link only when the person is invited or notified - default on.
-3) Show participants their respective queue positions based on the number of invites you have sent - default on. 
--->
 
 <div class="table-responsive">
   <h3>Invited Participants</h3>
   <ol class="list-group participants invited">
     <!-- List of invited participants -->
-    <!-- Here the invite button should become notify and the interviewer should be able to notify the person again if needed -->
     {% for participant in invitedParticipants %}
     {% set user = participant["user"] %}
     <li class="list-group-item d-flex justify-content-between align-items-start">
@@ -32,15 +25,13 @@
           aria-expanded="false">
           Notify again
         </button>
-        <!-- Make a separate group of participants who have already been invited and hence have null queue-position -->
-        <!-- Later give an option to export all data including sno, email, name, score and review in csv format -->
-        <!-- Finally make a small dropdown button to postpone or cancel the interview. -->
       </div>
     </li>
     {% endfor %}
   </ol>
   <hr>
   <h3>Participants in Queue</h3>
+
   <ol class="list-group participants not-invited">
     <!-- List of participants not yet invited -->
     {% for participant in uninvitedParticipants %}
@@ -60,14 +51,12 @@
           aria-expanded="false">
           Invite
         </button>
-        <!-- Make a separate group of participants who have already been invited and hence have null queue-position -->
-        <!-- Later give an option to export all data including sno, email, name, score and review in csv format -->
-        <!-- Finally make a small dropdown button to postpone or cancel the interview. -->
       </div>
     </li>
     {% endfor %}
   </ol>
 </div>
+
 <script>
   async function invite(email, roomID) {
     var not_invited = document.getElementById("not-invited");
@@ -81,7 +70,14 @@
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ "email": email, "roomID": roomID })
-    });
+    })
+    .then(res => res.json())
+      .then((json) => {
+        alert(json["result"]);
+      })
+      .then(() => {
+        window.location.reload(true);
+      })
   }
 
   async function notify(email, roomID) {
