@@ -1,5 +1,3 @@
-## FrostHack-2021
-
 # Receptionist
 This website will notify you when your turn arrives for your interview.
 
@@ -11,7 +9,7 @@ This website will show a pop-up message when the interviewer invites you to join
 
 ## Usage
 
-You just need to log in to our website with your email id with which you're registered for your interview.\
+You just need to log in to the website with your email id with which you're registered for your interview.\
 And then just wait for your turn.
 
 Meanwhile, you can also complete your assignments or may even finish up your last slice of pizza :P without worrying about missing your turn.
