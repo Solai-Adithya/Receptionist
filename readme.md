@@ -2,10 +2,10 @@
 This website will notify you when your turn arrives for your interview.
 
 ## Description
-Presently, we face scheduling and managing queues for applications like virtual Viva/Interviews conducted by Professors and Organizations. \
+Presently, we face issues when scheduling and managing queues for applications like virtual Viva/Interviews conducted by Professors and Organizations. \
 There may be many interviewees in the queue and one person making it late or taking too much time messes up the schedule of others.
 
-This website will show a pop-up message when the interviewer invites you to join the meeting. You will also be able to check your position in the queue so that you can plan your schedule to attend the interview.
+This website will show a pop-up message and send you a mail when the interviewer invites you to join the meeting. You will also be able to check your position in the queue so that you can plan your schedule to attend the interview.
 
 ## Usage
 
