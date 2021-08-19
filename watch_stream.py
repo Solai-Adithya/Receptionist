@@ -1,6 +1,3 @@
-from werkzeug.datastructures import ImmutableDict
-
-
 import main
 from db import ParticipantsCollection
 from curtsies.fmtfuncs import bold, green, bold, red
