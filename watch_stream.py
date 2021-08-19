@@ -1,9 +1,14 @@
-from main import socketio
+from werkzeug.datastructures import ImmutableDict
+
+
+import main
 from db import ParticipantsCollection
-from curtsies.fmtfuncs import blue, bold, green, bold, red
-from pprint import pprint
+from curtsies.fmtfuncs import bold, green, bold, red
 
 print(bold(red("Listening...")))
 with ParticipantsCollection.watch(full_document="updateLookup") as stream:
     for change in stream:
-        pprint(change)
+        doc = change["fullDocument"]
+        print(doc)
+        main.socketio.emit("updated room", to=doc["roomID"])
+        print(bold(green(f"updated | roomid = {doc['roomID']}")))

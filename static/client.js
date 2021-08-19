@@ -1,36 +1,50 @@
 const socket = io("http://" + document.domain + ":5000");
 
-socket.on("connect", (data) => {
-    console.log(data);
-});
-
 const l = String(window.location);
 const found = l.match(/.*\/(join|manage)\/(\w+).*/);
 console.log(found);
 const m = found[1];
 const r = found[2];
 
-if (m === "join") {
-    setInterval(() => {
-        fetch("/get_QP", {
-            method: "POST",
-            dataType: "json",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ roomID: r }),
-        })
-            .then((res) => res.json())
-            .then((res) => {
-                // console.log(res);
-                const e = document.getElementById("queuePosition");
-                if (m === "join" && res["queuePosition"] !== e.innerText) {
-                    e.innerText = res["queuePosition"];
-                }
-            });
-    }, 2000);
+if (found !== null && r !== null) {
+    socket.emit("to-join", { roomID: r });
+    console.log("joined");
 }
+
+socket.on("ping", (data) => {
+    console.log("pong");
+});
+
+socket.on("connect", () => {
+    console.log("connect");
+});
+
+socket.on("updated room", () => {
+    console.log("update !!!");
+    window.location.reload();
+});
+
+// if (m === "join") {
+//     setInterval(() => {
+//         fetch("/get_QP", {
+//             method: "POST",
+//             dataType: "json",
+//             headers: {
+//                 Accept: "application/json",
+//                 "Content-Type": "application/json",
+//             },
+//             body: JSON.stringify({ roomID: r }),
+//         })
+//             .then((res) => res.json())
+//             .then((res) => {
+//                 // console.log(res);
+//                 const e = document.getElementById("queuePosition");
+//                 if (m === "join" && res["queuePosition"] !== e.innerText) {
+//                     e.innerText = res["queuePosition"];
+//                 }
+//             });
+//     }, 2000);
+// }
 
 // BOILERPLATE
 function notifyMe(user, message) {

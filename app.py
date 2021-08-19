@@ -11,7 +11,7 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, join_room, emit
 from oauthlib.oauth2 import WebApplicationClient
 
 import views
@@ -48,7 +48,11 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 socketio = SocketIO(
-    app, async_mode="eventlet", logger=True, engineio_logger=False
+    app,
+    message_queue="redis://",
+    async_mode="threading",
+    logger=True,
+    engineio_logger=False,
 )
 
 
@@ -126,20 +130,18 @@ def logout():
     return redirect("/")
 
 
+@socketio.on("message")
+def handle_message(event, data):
+    socketio.emit("ping", data)
+    socketio.emit("updated room", to="acbqulalolxrnvyw")
+    print("received message: " + event, data)
+
+
 @socketio.on("to-join")
 def io_to_join_room(data):
-    print(bold(yellow(f"{data['data']} to join {data['roomID']}")))
-    socketio.join_room(data.roomID)
+    join_room(data["roomID"])
 
 
-# @socketio.on("connect")
-# def io_join_room(data=None):
-#     print(bold(yellow(f"{current_user.email} joined {data}")))
-
-
-# @socketio.on("disconnect")
-# def on_leave(data=None):
-#     """
-#     Sent after leaving a room.
-#     """
-#     print(bold(yellow(f"{current_user.email} left {data}")))
+@socketio.on("updated room")
+def io_updated_room():
+    print(bold(yellow("updated room :/")))

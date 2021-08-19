@@ -12,9 +12,10 @@ killall() {
     wait
     echo DONE
 }
-
+echo "WAIT"
 python3 main.py &
 echo $!
+sleep 5s
 python3 watch_stream.py & 
 echo $!
 

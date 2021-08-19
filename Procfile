@@ -1,1 +1,1 @@
-web: gunicorn app:app
+chmod u+x run.sh && ./run.sh

@@ -108,12 +108,6 @@ def manage(roomID):
         uninvitedParticipants = Participants.getUnInvitedParticipantsInRoom(
             roomID
         )
-        emit(
-            "to-join",
-            {"data": current_user.email, "roomID": roomID},
-            to=roomID,
-            namespace="/",
-        )
         return render_template(
             "manage.html",
             roomID=roomID,
@@ -177,12 +171,6 @@ def flask_join_room(roomID):
         Participants.ifParticipantInRoom(roomID, current_user.email)
         is not None
     ):
-        emit(
-            "to-join",
-            {"data": current_user.email, "roomID": roomID},
-            to=roomID,
-            namespace="/",
-        )
         joiningDetails = Participants.getJoiningDetails(
             roomID, current_user.email
         )
