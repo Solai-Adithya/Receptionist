@@ -12,6 +12,7 @@ killall() {
     wait
     echo DONE
 }
+
 echo "WAIT"
 python3 main.py &
 echo $!

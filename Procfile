@@ -1,1 +1,2 @@
-release: chmod u+x run.sh && ./run.sh
+python watch_stream.py &
+web: gunicorn main:app

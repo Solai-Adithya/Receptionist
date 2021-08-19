@@ -1,4 +1,9 @@
-const socket = io("http://" + document.domain + ":5000");
+const socket = io(
+    location.protocol +
+        "//" +
+        location.hostname +
+        (location.port ? ":" + location.port : "")
+);
 
 const l = String(window.location);
 const found = l.match(/.*\/(join|manage)\/(\w+).*/);

@@ -11,7 +11,7 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from flask_socketio import SocketIO, join_room, emit
+from flask_socketio import SocketIO, join_room
 from oauthlib.oauth2 import WebApplicationClient
 
 import views
@@ -53,6 +53,7 @@ socketio = SocketIO(
     async_mode="threading",
     logger=True,
     engineio_logger=False,
+    cors_allowed_origins="*",
 )
 
 
@@ -133,15 +134,10 @@ def logout():
 @socketio.on("message")
 def handle_message(event, data):
     socketio.emit("ping", data)
-    socketio.emit("updated room", to="acbqulalolxrnvyw")
+    # socketio.emit("updated room", to="acbqulalolxrnvyw")
     print("received message: " + event, data)
 
 
 @socketio.on("to-join")
 def io_to_join_room(data):
     join_room(data["roomID"])
-
-
-@socketio.on("updated room")
-def io_updated_room():
-    print(bold(yellow("updated room :/")))
