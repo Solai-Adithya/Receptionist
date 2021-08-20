@@ -40,8 +40,6 @@ ATLAS_ADMIN_PWD = ""
 GOOGLE_CLIENT_ID = "xxx.apps.googleusercontent.com"
 GOOGLE_SECRET = ""
 GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
-MJ_API_KEY = ""
-MJ_API_SECRET = ""
 EMAIL_ID = "xxx@gmail.com"
 EMAIL_PASSWORD = ""
 ```
