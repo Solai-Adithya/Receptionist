@@ -31,7 +31,10 @@ Enjoy
 
 1. Install redis from redis.io
 2. Start Redis.
-3. Make your constants.py
+3. Make your `constants.py`.
+4. Use the google cloud console to generate the appropriate ID/Secret. (Choose `Web Application` and allow \ADD SCOPES\ and \AUTHORISED URLS\ ) <!-- TODO -->
+5. Make a MongoDB Atlas Document.
+
 ```
 ATLAS_ADMIN_PWD = ""
 GOOGLE_CLIENT_ID = "xxx.apps.googleusercontent.com"
@@ -42,6 +45,7 @@ MJ_API_SECRET = ""
 EMAIL_ID = "xxx@gmail.com"
 EMAIL_PASSWORD = ""
 ```
+
 5. Install `requirements.txt`.
 6. Run `run.sh`.
 
