@@ -1,14 +1,9 @@
 import json
 import os
-from csv import reader
-from datetime import datetime
-from io import StringIO
-
 import requests
-from curtsies.fmtfuncs import blue, bold, green, red, yellow
-from flask import Flask
-from flask import abort as flask_abort
-from flask import jsonify, redirect, render_template, request, url_for
+from curtsies.fmtfuncs import bold, yellow
+
+from flask import Flask, redirect, request
 from flask_login import (
     LoginManager,
     current_user,
@@ -16,226 +11,55 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from flask_socketio import SocketIO, emit, join_room
+from flask_socketio import SocketIO, join_room
 from oauthlib.oauth2 import WebApplicationClient
 
-from constants import GOOGLE_CLIENT_ID, GOOGLE_DISCOVERY_URL, GOOGLE_SECRET
-from db import Participants, ParticipantsCollection, Rooms, User
-from functions import generateRoomID, invite_user, notify_user
+import views
+from constants import GOOGLE_CLIENT_ID, GOOGLE_SECRET
+from db import User
+from functions import get_google_provider_cfg
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 os.environ["FLASK_ENV"] = "development"
 
-rooms = Rooms()
-participants = Participants()
 
-app = Flask(__name__)
+def make_app(name):
+    app = Flask(name)
+    app.config["SECRET_KEY"] = "secret!"
+    app.debug = False
+    return app
 
-app.config["SECRET_KEY"] = "secret!"
-app.debug = False
 
-socketio = SocketIO(
-    app, async_mode="eventlet", logger=True, engineio_logger=False
+app = make_app(__name__)
+
+app.add_url_rule("/", view_func=views.home)
+app.add_url_rule("/create/<method>", view_func=views.createRoom)
+app.add_url_rule(
+    "/attendees/<method>", view_func=views.attendees_add, methods=["POST"]
 )
+app.add_url_rule("/manage/<roomID>/", view_func=views.manage)
+app.add_url_rule("/get_QP", view_func=views.getQueuePosition, methods=["POST"])
+app.add_url_rule("/invite", view_func=views.invite, methods=["POST"])
+app.add_url_rule("/notify", view_func=views.notify, methods=["POST"])
+app.add_url_rule("/join/<roomID>/", view_func=views.flask_join_room)
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-# Login
-def get_google_provider_cfg():
-    return requests.get(GOOGLE_DISCOVERY_URL).json()
-
-
-# Homepage
-@app.route("/")
-def home():
-    if current_user.is_authenticated:
-        createdRooms = rooms.getRoomsByCreator(current_user.email)
-        RoomsbyParticipation = participants.getRoomsByParticipant(
-            current_user.email
-        )
-
-        return render_template(
-            "upcoming.html",
-            createRoomsTable=createdRooms,
-            RoomsbyParticipationTable=RoomsbyParticipation,
-            user_name=current_user.name,
-            user_email=current_user.email,
-            user_profile_pic=current_user.profile_pic,
-        )
-    else:
-        return render_template("homePageNotLoggedIn.html")
-
-
-@app.route("/create/<method>")
-@login_required
-def createRoom(method):
-    if method in ("add", "invite"):
-        return render_template(
-            "newroom.html", add=(method == "add"), method=method
-        )
-    else:
-        flask_abort(404)
-
-
-@app.route("/attendees/<method>", methods=["POST"])
-@login_required
-def attendees_add(method):
-
-    startDate = datetime.strptime(request.form["start-date"], r"%Y-%m-%d")
-    startTime = datetime.strptime(request.form["start-time"], r"%H:%M")
-    start_datetime = datetime.combine(startDate.date(), startTime.time())
-
-    name = request.form["name"]
-    link = request.form["meet-link"]
-    description = request.form["description"]
-    room_id = None
-
-    roomDetails = {
-        "_id": room_id,
-        "start_date": start_datetime,
-        "name": name,
-        "description": description,
-        "meeting_link": link,
-        "creator": current_user.email,
-    }
-
-    if method == "add":
-
-        room_id = generateRoomID()
-        while rooms.getRoomByID(room_id) is not None:
-            room_id = generateRoomID()
-        roomDetails["_id"] = room_id
-
-        emails = request.files["uploadEmails"].read().decode()
-
-        with StringIO(emails) as input_file:
-            csv_reader = reader(input_file, delimiter="\n")
-            emails = [row[0] for row in csv_reader]
-
-        rooms.createRoom(roomDetails)
-        participants.addParticipants(room_id, emails)
-        return redirect(url_for("manage", roomID=room_id))
-
-    elif method == "invite":
-
-        room_id = request.form["room-id"]
-        roomDetails["_id"] = room_id
-
-        if rooms.getRoomByID(room_id) is None:
-            rooms.createRoom(roomDetails)
-            return redirect(url_for("manage", roomID=room_id))
-        else:
-            return (
-                "Sorry!, that room code is already taken, please refill data"
-            )
+socketio = SocketIO(
+    app,
+    message_queue="redis://",
+    async_mode="threading",
+    logger=True,
+    engineio_logger=False,
+    cors_allowed_origins="*",
+)
 
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.get(user_id)
-
-
-@app.route("/manage/<roomID>/")
-@login_required
-def manage(roomID):
-    """
-    Allowed only if user created the room.
-    """
-    roomDetail = rooms.getRoomByID(roomID, projection=["creator"])
-    if roomDetail is not None and roomDetail["creator"] == current_user.email:
-        invitedPariticipants = participants.getInvitedParticipantsInRoom(
-            roomID
-        )
-        uninvitedParticipants = participants.getUnInvitedParticipantsInRoom(
-            roomID
-        )
-        emit(
-            "to-join",
-            {"data": current_user.email, "roomID": roomID},
-            to=roomID,
-            namespace="/",
-        )
-        return render_template(
-            "manage.html",
-            roomID=roomID,
-            invitedParticipants=invitedPariticipants,
-            uninvitedParticipants=uninvitedParticipants,
-        )
-    else:
-        flask_abort(403)
-
-
-@app.route("/get_QP", methods=["POST"])
-def getQueuePosition():
-    data = request.get_json(force=True)
-    roomID = data["roomID"]
-    res = Participants.getQueuePosition(roomID, current_user.email)
-    print(bold(green(f"{roomID}, {current_user.email}, {res}")))
-    return res
-
-
-@app.route("/invite", methods=["POST"])
-def invite():
-    js = request.get_json(force=True)
-    room_id = js["roomID"]
-    participant_email = js["email"]
-
-    print(bold(blue(f"Inviting {participant_email = } to {room_id = }")))
-    if (
-        participants.ifParticipantInRoom(room_id, participant_email)
-        is not None
-    ):
-        invite_user(room_id, participant_email)
-        # notify the next participant to be
-        # ready by email and website if online - experimental
-        print(bold(blue(f"Successful , {room_id=}, {participant_email=}")))
-        participants.removeParticipantFromQueue(room_id, participant_email)
-        participants.addInviteTimestamp(room_id, participant_email)
-        return {"result": "success"}
-    else:
-        return {"result": "failure"}
-
-
-@app.route("/notify", methods=["POST"])
-def notify():
-    js = request.get_json(force=True)
-    room_id = js["roomID"]
-    participant_email = js["email"]
-    if (
-        participants.ifParticipantInRoom(room_id, participant_email)
-        is not None
-    ):
-        invite_user(room_id, participant_email)
-        res = {"result": "success"}
-    else:
-        res = {"result": "failure"}
-    return jsonify(res)
-
-
-@app.route("/join/<roomID>/")
-@login_required
-def flask_join_room(roomID):
-    """
-    Allowed only if user is a participant.
-    """
-    if (
-        participants.ifParticipantInRoom(roomID, current_user.email)
-        is not None
-    ):
-        emit(
-            "to-join",
-            {"data": current_user.email, "roomID": roomID},
-            to=roomID,
-            namespace="/",
-        )
-        joiningDetails = participants.getJoiningDetails(
-            roomID, current_user.email
-        )
-        return render_template("participant.html", **joiningDetails)
-    else:
-        flask_abort(403)
 
 
 # Login
@@ -256,7 +80,6 @@ def login():
 @app.route("/login/callback")
 def callback():
     code = request.args.get("code")
-    # result = "<p>code: " + code + "</p>"
     google_provider_cfg = get_google_provider_cfg()
     token_endpoint = google_provider_cfg["token_endpoint"]
     token_url, headers, body = client.prepare_token_request(
@@ -276,7 +99,6 @@ def callback():
     uri, headers, body = client.add_token(userinfo_endpoint)
     userinfo_response = requests.get(uri, headers=headers, data=body)
 
-    # result = result + "<p>token_response: " + token_response.text + "</p>"
     userinfo_data = userinfo_response.json()
     if userinfo_data.get("email_verified") is not None:
         unique_id = userinfo_data["sub"]
@@ -309,26 +131,13 @@ def logout():
     return redirect("/")
 
 
+@socketio.on("message")
+def handle_message(event, data):
+    socketio.emit("ping", data)
+    # socketio.emit("updated room", to="acbqulalolxrnvyw")
+    print("received message: " + event, data)
+
+
 @socketio.on("to-join")
 def io_to_join_room(data):
-    print(bold(yellow(f"{data['data']} to join {data['roomID']}")))
-    socketio.join_room(data.roomID)
-
-
-@socketio.on("connect")
-def io_join_room(data=None):
-    print(bold(yellow(f"{current_user.email} joined {data}")))
-
-
-@socketio.on("disconnect")
-def on_leave(data=None):
-    """
-    Sent after leaving a room.
-    """
-    print(bold(yellow(f"{current_user.email} left {data}")))
-
-
-if __name__ == "__main__":
-    socketio.run(
-        app, host="localhost", port=5000, log_output=True, use_reloader=True
-    )
+    join_room(data["roomID"])

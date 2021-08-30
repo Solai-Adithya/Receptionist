@@ -1,10 +1,7 @@
 import smtplib
-import imghdr
 import random
-import functools
-from flask_login import current_user
-from flask_socketio import disconnect
-from constants import EMAIL_ID, EMAIL_PASSWORD
+import requests
+from constants import EMAIL_ID, EMAIL_PASSWORD, GOOGLE_DISCOVERY_URL
 from email.message import EmailMessage
 from db import User, Rooms
 
@@ -14,15 +11,9 @@ def generateRoomID():
     return roomID
 
 
-def authenticated_only(f):
-    @functools.wraps(f)
-    def wrapped(*args, **kwargs):
-        if not current_user.is_authenticated:
-            disconnect()
-        else:
-            return f(*args, **kwargs)
-
-    return wrapped
+# Login
+def get_google_provider_cfg():
+    return requests.get(GOOGLE_DISCOVERY_URL).json()
 
 
 def invite_user(room_id, participant_email):

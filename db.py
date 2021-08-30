@@ -95,7 +95,7 @@ class Participants:
         )
 
         participantDetails = ParticipantsCollection.find_one(
-            {"email": email},
+            {"email": email, "roomID": room_id},
             {
                 "windowLowerBound": 1,
                 "windowUpperBound": 1,
